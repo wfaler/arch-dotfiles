@@ -2,7 +2,7 @@
 
 {
  home.username = "wfaler";
- home.homeDirectory = "/home/wfaler";
+ home.homeDirectory = "/Users/wfaler";
 
  home.stateVersion = "24.05"; # Please read the comment before changing.
 
@@ -42,8 +42,8 @@
     pkgs.neovim
     pkgs.mise
     pkgs.corepack_22
-    pkgs.maestral
-    pkgs.maestral-gui
+#    pkgs.maestral
+#    pkgs.maestral-gui
     pkgs.bat
   ];
   
@@ -92,6 +92,7 @@
       EDITOR = "nvim";
       NIXPKGS_ALLOW_UNFREE = 1;
       GOPATH = "$HOME/apps/go";
+      SDKMAN_DIR = "$HOME/.sdkman";
       USE_GKE_GCLOUD_AUTH_PLUGIN = "True";
       GOBIN = "$HOME/.local/share/mise/go/installs/[VERSION]/bin";
       PATH = "$HOME/.local/share/mise/shims:$HOME/.cargo/bin:$HOME/.local/bin:$HOME/.nix-profile/bin:$GOPATH/bin:$HOME/apps/bin:$PATH:$HOME/.local/share/coursier/bin";
@@ -102,7 +103,7 @@
       vi = "nvim";
     };
     initExtra = ''mkdir -p $HOME/apps/go/bin 
-#source "$HOME/.sdkman/bin/sdkman-init.sh"
+source "$HOME/.sdkman/bin/sdkman-init.sh"
 eval "$(~/.nix-profile/bin/mise activate zsh)"
 '';
   };
