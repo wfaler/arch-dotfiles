@@ -11,7 +11,7 @@ packages=(
     # nvidia-inst # only for nvidia systems
     ripgrep
     nerd-fonts
-    ttf-mononoki
+    #ttf-mononoki
     rustup
     zsh
     stow
