@@ -2,8 +2,8 @@
 Contains my setup for:
 * Neovim
 * Kitty  (terminal)
-* Zsh
-* Nicely rice'd [Hyprland](https://hyprland.org/)
+* Fish-shell
+* Esthetically customized [Hyprland](https://hyprland.org/)
 * All dev runtimes i use: Node, Go, Python (with Poetry), Ruby, Rust
 * All the apps I use, more or less, installed via `yay` in Arch
 ## Pre-requisites
