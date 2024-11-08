@@ -5,13 +5,12 @@ yay -Syu --noconfirm
 
 # List of packages to install
 packages=(
+    # nvidia-inst # only for nvidia systems
     btop
     curl
     neovim
-    # nvidia-inst # only for nvidia systems
     ripgrep
     nerd-fonts
-    #ttf-mononoki
     rustup
     zsh
     stow
@@ -35,6 +34,10 @@ packages=(
     kubectl
     kubectx
     helm
+    tmux
+    tailscale
+    fish
+    fisher
     ## HYPRLAND & RELATED TOOLS
     hyprland
     wlogout
@@ -55,9 +58,8 @@ packages=(
     slurp
     swayidle
     ## VARIOUS CLIENT APPS
-    slack-desktop
+    slack-desktop-wayland
     spotify
-    evince
     dropbox 
     1password
     zoom
@@ -75,10 +77,12 @@ packages=(
     discord
     calibre
     google-chrome
-    brave-bin
     tailscale
     fish
     fisher
+    ## IntelliJ for JVM work
+    intellij-idea-ultimate-edition-jre
+    intellij-idea-ultimate-edition
 )
 
 is_installed() {
