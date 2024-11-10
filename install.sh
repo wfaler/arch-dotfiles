@@ -46,6 +46,7 @@ packages=(
     xwaylandvideobridge
     xdg-desktop-portal
     xdg-desktop-portal-hyprland
+    xdg-desktop-portal-wlr
     hyprpaper
     hyprlock
     blueman
@@ -80,6 +81,7 @@ packages=(
     tailscale
     fish
     fisher
+    libreoffice-fresh
     ## IntelliJ for JVM work
     jdk21-temurin
     coursier
