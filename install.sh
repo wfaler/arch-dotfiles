@@ -31,9 +31,9 @@ packages=(
     git-secret
     gnupg
     cloc
-    kubectl
-    kubectx
-    helm
+    #kubectl
+    #kubectx
+    #helm
     tmux
     tailscale
     fish
@@ -60,10 +60,10 @@ packages=(
     swayidle
     ## VARIOUS CLIENT APPS
     slack-desktop-wayland
-    spotify
-    dropbox 
-    1password
-    zoom
+    #spotify
+    #dropbox 
+    #1password
+    #zoom
     obs-studio
     obsidian
     whatsie
