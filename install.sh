@@ -75,7 +75,7 @@ packages=(
     discord
     calibre
     #ungoogled-chromium
-    #google-chrome
+    google-chrome
     tailscale
     fish
     fisher
