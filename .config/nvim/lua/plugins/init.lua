@@ -23,7 +23,7 @@ return {
   },
   {
     "stevearc/conform.nvim",
-    -- event = 'BufWritePre', -- uncomment for format on save
+    event = 'BufWritePre', -- format on save
     config = function()
       require "configs.conform"
     end,
@@ -55,6 +55,8 @@ return {
         -- low level
         "c",
         "rust",
+        "java",
+        "kotlin",
       },
     },
   },
@@ -71,13 +73,6 @@ return {
        require "../configs.lspconfig"
      end,
    },
-  {
-    "jose-elias-alvarez/null-ls.nvim",
-    ft = {"go", "python", "javascript", "typescript", "javascriptreact", "typescriptreact", "vue"},
-    opts = function()
-      return require "../configs.null-ls"
-    end,
-  },
   {"github/copilot.vim",
     lazy = false,
   --  config = function()
@@ -92,7 +87,7 @@ return {
   },
   {
     "nvim-neotest/neotest",
-    ft = {"go", "python", "scala", "javascript", "typescript", "javascriptreact", "typescriptreact", "rust"},
+    ft = {"go", "python", "scala", "javascript", "typescript", "javascriptreact", "typescriptreact", "rust", "kotlin"},
     dependencies = {
       "nvim-treesitter/nvim-treesitter",
       "antoinemadec/FixCursorHold.nvim",
@@ -102,6 +97,7 @@ return {
       "stevanmilic/neotest-scala",
       "nvim-neotest/neotest-jest",
       "marilari88/neotest-vitest",
+      "codymikol/neotest-kotlin",
       "nvim-neotest/nvim-nio",
       -- "rouge8/neotest-rust",
     },
@@ -129,6 +125,20 @@ return {
       "LazyGitCurrentFile",
       "LazyGitFilter",
       "LazyGitFilterCurrentFile",
+    },
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+    },
+  },
+  {
+    "sindrets/diffview.nvim",
+    cmd = {
+      "DiffviewOpen",
+      "DiffviewClose",
+      "DiffviewToggleFiles",
+      "DiffviewFocusFiles",
+      "DiffviewRefresh",
+      "DiffviewFileHistory",
     },
     dependencies = {
       "nvim-lua/plenary.nvim",

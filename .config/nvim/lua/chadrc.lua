@@ -33,6 +33,9 @@ M.mason.pkgs = {
    "vue-language-server",
    "prettier",
    "html-lsp",
+   "jdtls",
+   "google-java-format",
+   "kotlin-language-server",
 }
 
 return M

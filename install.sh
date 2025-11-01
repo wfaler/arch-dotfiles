@@ -31,9 +31,6 @@ packages=(
     git-secret
     gnupg
     cloc
-    #kubectl
-    #kubectx
-    #helm
     tmux
     tailscale
     fish
@@ -43,7 +40,7 @@ packages=(
     wlogout
     waybar
     wofi
-    xwaylandvideobridge
+    #xwaylandvideobridge # broken recently
     xdg-desktop-portal
     xdg-desktop-portal-hyprland
     xdg-desktop-portal-wlr
@@ -60,24 +57,25 @@ packages=(
     swayidle
     ## VARIOUS CLIENT APPS
     slack-desktop-wayland
-    #spotify
-    #dropbox 
-    #1password
-    #zoom
-    obs-studio
+    spotify
+    dropbox 
+    1password
+    zoom
+    #obs-studio
     obsidian
-    whatsie
+    #whatsie
     todoist-appimage
-    bruno
-    evolution
-    audacity
+   # bruno
+    ib-tws
+    #evolution
+    #audacity
     protonmail-bridge
     proton-vpn-gtk-app
-    signal-desktop
     darktable
     discord
     calibre
-    google-chrome
+    #ungoogled-chromium
+    #google-chrome
     tailscale
     fish
     fisher
@@ -87,6 +85,7 @@ packages=(
     coursier
     intellij-idea-ultimate-edition-jre
     intellij-idea-ultimate-edition
+    gradle
 )
 
 is_installed() {
@@ -126,7 +125,7 @@ else
     echo "rustup is not installed. Skipping Rust toolchain installation."
 fi
 
-# Install Alacritty last
+# Install Kitty last
 if ! is_installed "kitty"; then
     echo "Installing kitty..."
     if ! yay -S --noconfirm kitty; then

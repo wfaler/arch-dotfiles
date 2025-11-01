@@ -34,6 +34,7 @@ require("neotest").setup {
       framework = "scalatest", -- suppoerts utest, munit
       runner = "sbt", -- can also be sbt/bloop
     },
+    require "neotest-kotlin",
     require "rustaceanvim.neotest"{},
   },
 --  quickfix = {
