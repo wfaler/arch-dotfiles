@@ -1,5 +1,10 @@
 [tools]
-node = "22"
-python = "3.12"
+node = "24"
+python = "3.14"
 ruby = "3.3"
-go = "1.23"
+go = "1.25"
+
+[settings]
+
+[settings.python]
+compile = false
