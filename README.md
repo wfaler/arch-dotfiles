@@ -33,3 +33,28 @@ If you want to use the fishline, you can install it with:
 ```
 fisher install 0rax/fishline
 ```
+
+
+## Setting default browser to open links
+Check browser:
+
+```
+xdg-settings get default-web-browser
+xdg-mime query default x-scheme-handler/http
+xdg-mime query default x-scheme-handler/https
+
+```
+Change:
+
+```
+xdg-settings set default-web-browser firefox.desktop
+xdg-mime default firefox.desktop x-scheme-handler/http
+xdg-mime default firefox.desktop x-scheme-handler/https
+
+```
+
+
+### KDE settings 
+* Navigate desktops with meta-[n]
+* meta-W does "expose" style show all windows, can move around.
+
