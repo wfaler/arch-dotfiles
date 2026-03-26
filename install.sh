@@ -58,7 +58,8 @@ packages=(
     ## VARIOUS CLIENT APPS
     slack-desktop-wayland
     spotify
-    dropbox 
+#    dropbox 
+    synology-drive
     1password
     zoom
     #obs-studio

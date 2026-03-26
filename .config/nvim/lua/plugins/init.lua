@@ -1,38 +1,16 @@
 return {
   {
-    "yetone/avante.nvim",
-    event = "VeryLazy",
-    build = "make", -- This is Optional, only if you want to use tiktoken_core to calculate tokens count
-    opts = {
-    -- add any opts here
-    },
-    dependencies = {
-      "nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
-      "stevearc/dressing.nvim",
-      "nvim-lua/plenary.nvim",
-      "MunifTanjim/nui.nvim",
-    --- The below is optional, make sure to setup it properly if you have lazy=true
-      {
-        'MeanderingProgrammer/render-markdown.nvim',
-        opts = {
-          file_types = { "markdown", "Avante" },
-        },
-        ft = { "markdown", "Avante" },
-      },
-    },
-  },
-  {
     "stevearc/conform.nvim",
-    event = 'BufWritePre', -- format on save
+    event = 'BufWritePre',
     config = function()
       require "configs.conform"
     end,
   },
-    {
+  {
     "nvim-treesitter/nvim-treesitter",
     opts = {
       ensure_installed = {
-        -- defaults 
+        -- defaults
         "vim",
         "lua",
         "python",
@@ -44,7 +22,7 @@ return {
         "dockerfile",
         "scala",
         "templ",
-        -- web dev 
+        -- web dev
         "html",
         "css",
         "javascript",
@@ -64,22 +42,14 @@ return {
     "williamboman/mason.nvim",
   },
   {
-    "numToStr/Comment.nvim",
-    lazy = false,
-  },
-  {
     "neovim/nvim-lspconfig",
      config = function()
-       require "../configs.lspconfig"
+       require "configs.lspconfig"
      end,
    },
-  {"github/copilot.vim",
+  {
+    "github/copilot.vim",
     lazy = false,
-  --  config = function()
-    --  vim.g.copilot_no_tab_map = true;
-    --  vim.g.copilot_assume_mapped = true;
-    --  vim.g.copilot_tab_fallback = "";
-   -- end
   },
   {
     "scalameta/nvim-metals",
@@ -90,7 +60,6 @@ return {
     ft = {"go", "python", "scala", "javascript", "typescript", "javascriptreact", "typescriptreact", "rust", "kotlin"},
     dependencies = {
       "nvim-treesitter/nvim-treesitter",
-      "antoinemadec/FixCursorHold.nvim",
       "nvim-lua/plenary.nvim",
       "nvim-neotest/neotest-go",
       "nvim-neotest/neotest-python",
@@ -99,20 +68,19 @@ return {
       "marilari88/neotest-vitest",
       "codymikol/neotest-kotlin",
       "nvim-neotest/nvim-nio",
-      -- "rouge8/neotest-rust",
     },
     config = function()
-      require "../configs.neotest"
+      require "configs.neotest"
     end,
   },
   {
     'mrcjkb/rustaceanvim',
-    version = '^4', -- Recommended
-    lazy = false, -- This plugin is already lazy
+    version = '^5',
+    lazy = false,
   },
   {
     'saecki/crates.nvim',
-    tag = 'stable',
+    version = '*',
     config = function()
         require('crates').setup()
     end,
@@ -129,6 +97,16 @@ return {
     dependencies = {
       "nvim-lua/plenary.nvim",
     },
+  },
+  {
+    "greggh/claude-code.nvim",
+    lazy = false,
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+    },
+    config = function()
+      require("claude-code").setup()
+    end,
   },
   {
     "sindrets/diffview.nvim",

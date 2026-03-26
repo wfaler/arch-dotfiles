@@ -1,16 +1,15 @@
-local lspconfig = require "lspconfig"
-local util = require "lspconfig/util"
 local on_attach = require("nvchad.configs.lspconfig").on_attach
 local on_init = require("nvchad.configs.lspconfig").on_init
 local capabilities = require("nvchad.configs.lspconfig").capabilities
 
 -- Golang config
-lspconfig.gopls.setup {
+vim.lsp.config("gopls", {
   on_attach = on_attach,
+  on_init = on_init,
   capabilities = capabilities,
   cmd = { "gopls" },
   filetypes = { "go", "gomod", "gowork", "gotmpl" },
-  root_dir = util.root_pattern("go.work", "go.mod", ".git"),
+  root_markers = { "go.work", "go.mod", ".git" },
   settings = {
     gopls = {
       completeUnimported = true,
@@ -28,7 +27,7 @@ lspconfig.gopls.setup {
       },
     },
   },
-}
+})
 
 -- JetBrains Experimental Kotlin LSP (manual setup)
 vim.api.nvim_create_autocmd("FileType", {
@@ -37,59 +36,51 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.lsp.start({
       name = "kotlin-lsp",
       cmd = { "kotlin-lsp", "--stdio" },
-      root_dir = util.root_pattern("settings.gradle", "settings.gradle.kts", "build.gradle", "build.gradle.kts", ".git")(vim.fn.expand("%:p:h")),
+      root_dir = vim.fs.root(0, { "settings.gradle", "settings.gradle.kts", "build.gradle", "build.gradle.kts", ".git" }),
       on_attach = on_attach,
       capabilities = capabilities,
     })
   end,
 })
 
-lspconfig.rust_analyzer.setup {
-  on_attach = on_attach,
-  capabilities = capabilities,
-  settings = {
-    ["rust-analyzer"] = {
-      assist = {
-        importMergeBehavior = "last",
-        importPrefix = "by_self",
-      },
-      cargo = {
-        loadOutDirsFromCheck = true,
-      },
-      procMacro = {
-        enable = true,
-      },
-    },
-  },
-}
+-- rust_analyzer is managed by rustaceanvim — no manual setup needed
+
 -- Python config
-lspconfig.pyright.setup {
+vim.lsp.config("pyright", {
   on_attach = on_attach,
+  on_init = on_init,
   capabilities = capabilities,
   filetypes = { "python" },
-}
+})
+
 -- Terraform
-lspconfig.terraformls.setup {
+vim.lsp.config("terraformls", {
   on_attach = on_attach,
+  on_init = on_init,
   capabilities = capabilities,
-}
-lspconfig.tflint.setup {
+})
+
+vim.lsp.config("tflint", {
   on_attach = on_attach,
+  on_init = on_init,
   capabilities = capabilities,
-}
+})
+
 -- typescript & vue
+-- Using ts_ls with @vue/typescript-plugin handles both TS and Vue.
+-- Volar is no longer needed separately when using hybrid mode.
 local function find_plugin_in_node_modules(plugin_name)
   local project_root = vim.fn.getcwd()
   local plugin_path = vim.fn.glob(project_root .. "/node_modules/" .. plugin_name)
   if vim.fn.empty(plugin_path) == 1 then
-    -- Fallback to a global path or error handling
-    return "/opt/homebrew/lib/node_modules/" .. plugin_name
+    return nil
   end
   return plugin_path
 end
 
-lspconfig.ts_ls.setup {
+vim.lsp.config("ts_ls", {
   on_attach = on_attach,
+  on_init = on_init,
   capabilities = capabilities,
   init_options = {
     plugins = {
@@ -101,55 +92,40 @@ lspconfig.ts_ls.setup {
     },
   },
   filetypes = { "typescript", "typescriptreact", "vue" },
-}
-lspconfig.metals.setup {
-  -- Metals-specific configuration
+})
+
+vim.lsp.config("metals", {
   on_attach = on_attach,
+  on_init = on_init,
   capabilities = capabilities,
   settings = {
     showImplicitArguments = true,
     showInferredType = true,
-    -- other Metals settings
   },
-}
+})
 
-lspconfig.html.setup {
+vim.lsp.config("html", {
   on_attach = on_attach,
+  on_init = on_init,
   capabilities = capabilities,
   filetypes = { "html", "templ" },
-}
+})
 
-lspconfig.templ.setup {
+vim.lsp.config("templ", {
   on_attach = on_attach,
+  on_init = on_init,
   capabilities = capabilities,
   filetypes = { "templ" },
-}
+})
 
-local function get_typescript_server_path(root_dir)
-  local project_root = util.find_node_modules_ancestor(root_dir)
-  return project_root and (util.path.join(project_root, "node_modules", "typescript", "lib")) or ""
-end
-
-local volar_init_options = {
-  typescript = {
-    tsdk = "",
-  },
-}
-
-lspconfig.volar.setup {
-  cmd = { "vue-language-server", "--stdio" },
-  filetypes = { "vue" },
-  root_dir = util.root_pattern "package.json",
-  init_options = volar_init_options,
-  on_new_config = function(new_config, new_root_dir)
-    if
-      new_config.init_options
-      and new_config.init_options.typescript
-      and new_config.init_options.typescript.tsdk == ""
-    then
-      new_config.init_options.typescript.tsdk = get_typescript_server_path(new_root_dir)
-    end
-  end,
-
-  on_attach = on_attach,
-}
+-- Enable all configured servers
+vim.lsp.enable({
+  "gopls",
+  "pyright",
+  "terraformls",
+  "tflint",
+  "ts_ls",
+  "metals",
+  "html",
+  "templ",
+})

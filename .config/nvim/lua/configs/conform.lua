@@ -2,7 +2,7 @@ local options = {
   formatters_by_ft = {
     lua = { "stylua" },
     go = { "gofmt", "goimports" },
-    python = { "black" },
+    python = { "ruff_format" },
     java = { "google-java-format" },
     javascript = { "prettier" },
     typescript = { "prettier" },
@@ -16,9 +16,8 @@ local options = {
   },
 
   format_on_save = {
-    -- These options will be passed to conform.format()
     timeout_ms = 1000,
-    lsp_fallback = true,
+    lsp_format = "fallback",
   },
 }
 
