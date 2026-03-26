@@ -5,7 +5,7 @@ yay -Syu --noconfirm
 
 # List of packages to install
 packages=(
-    # nvidia-inst # only for nvidia systems
+    nvidia-inst # only for nvidia systems
     btop
     curl
     neovim
@@ -58,14 +58,16 @@ packages=(
     ## VARIOUS CLIENT APPS
     slack-desktop-wayland
     spotify
-#    dropbox 
     synology-drive
+    claude-code
+    gemini-cli-git
     1password
     zoom
     #obs-studio
     obsidian
     #whatsie
     todoist-appimage
+    beeper
    # bruno
     ib-tws
     #evolution
@@ -75,7 +77,6 @@ packages=(
     darktable
     discord
     calibre
-    #ungoogled-chromium
     google-chrome
     tailscale
     fish

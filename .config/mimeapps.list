@@ -1,6 +1,16 @@
+<<<<<<< HEAD
 xdg-mime default org.kde.okular.desktop application/pdf
 
 [Default Applications]
 application/x-synology-drive-doc=synology-drive-open-file.desktop
 application/x-synology-drive-sheet=synology-drive-open-file.desktop
 application/x-synology-drive-slides=synology-drive-open-file.desktop
+=======
+[Added Associations]
+x-scheme-handler/http=firefox.desktop;
+x-scheme-handler/https=firefox.desktop;
+
+[Default Applications]
+x-scheme-handler/http=firefox.desktop;
+x-scheme-handler/https=firefox.desktop;
+>>>>>>> 4655d0bf6953dc018bd55786a885979223673599
