@@ -35,6 +35,8 @@ return {
         "rust",
         "java",
         "kotlin",
+        "markdown",
+        "markdown_inline",
       },
     },
   },
@@ -106,6 +108,14 @@ return {
     },
     config = function()
       require("claude-code").setup()
+    end,
+  },
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    ft = "markdown",
+    dependencies = { "nvim-treesitter/nvim-treesitter" },
+    config = function()
+      require("render-markdown").setup({})
     end,
   },
   {
