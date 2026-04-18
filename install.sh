@@ -184,4 +184,4 @@ else
 fi
 
 stow .
-chmod +x ~/.config/hypr/hypr-launch-bluetooth.sh ~/.config/hypr/hypr-launch-wifi.sh
+chmod +x .config/hypr/hypr-launch-bluetooth.sh .config/hypr/hypr-launch-wifi.sh
