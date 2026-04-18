@@ -1,8 +1,5 @@
 #!/bin/bash
 # Launch bluetui in kitty, or focus the existing window if already open.
-# Based on omarchy's omarchy-launch-bluetooth pattern.
-# NOTE: Ensure this script is executable (`chmod +x ~/.config/hypr/hypr-launch-bluetooth.sh`) after stow.
-
 APP_ID="hypr.bluetui"
 
 # Focus existing window if open

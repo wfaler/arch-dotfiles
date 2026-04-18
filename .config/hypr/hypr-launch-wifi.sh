@@ -1,8 +1,5 @@
 #!/bin/bash
 # Launch impala wifi TUI in kitty, or focus the existing window if already open.
-# Based on omarchy's omarchy-launch-wifi pattern.
-# NOTE: Ensure this script is executable (`chmod +x ~/.config/hypr/hypr-launch-wifi.sh`) after stow.
-
 APP_ID="hypr.impala"
 
 # Focus existing window if open
