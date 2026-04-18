@@ -36,25 +36,24 @@ packages=(
     fish
     fisher
     ## HYPRLAND & RELATED TOOLS
-#    hyprland
-#    wlogout
-#    waybar
-#    wofi
-    #xwaylandvideobridge # broken recently
-#    xdg-desktop-portal
-#    xdg-desktop-portal-hyprland
-#    xdg-desktop-portal-wlr
-#    hyprpaper
-#    hyprlock
-#    blueman
-#    network-manager-applet
-#    swayidle
-#    dunst
+    hyprland
+    wlogout
+    waybar
+    fuzzel
+    xdg-desktop-portal
+    xdg-desktop-portal-hyprland
+    xdg-desktop-portal-gtk
+    hyprpaper
+    hyprlock
+    hypridle
+    hyprshot
+    blueman
+    network-manager-applet
+    swaync
+    cliphist
     wl-clipboard
     udiskie
     yazi
-    grim
-    slurp
     ## VARIOUS CLIENT APPS
     slack-desktop-wayland
     spotify
