@@ -46,8 +46,8 @@ packages=(
 #    xdg-desktop-portal-wlr
 #    hyprpaper
 #    hyprlock
-#    blueman
-#    network-manager-applet
+    bluetui
+    impala
 #    swayidle
 #    dunst
     wl-clipboard
@@ -184,3 +184,4 @@ else
 fi
 
 stow .
+chmod +x ~/.config/hypr/hypr-launch-bluetooth.sh ~/.config/hypr/hypr-launch-wifi.sh
