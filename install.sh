@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Update system first
 yay -Syu --noconfirm
 
@@ -184,4 +186,4 @@ else
 fi
 
 stow .
-chmod +x .config/hypr/hypr-launch-bluetooth.sh .config/hypr/hypr-launch-wifi.sh
+chmod +x "$SCRIPT_DIR/.config/hypr/hypr-launch-bluetooth.sh" "$SCRIPT_DIR/.config/hypr/hypr-launch-wifi.sh"

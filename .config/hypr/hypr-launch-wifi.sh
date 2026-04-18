@@ -6,10 +6,11 @@
 APP_ID="hypr.impala"
 
 # Focus existing window if open
-if command -v hyprctl > /dev/null 2>&1 && command -v jq > /dev/null 2>&1 \
-    && hyprctl clients -j | jq -e ".[] | select(.initialClass == \"$APP_ID\")" > /dev/null 2>&1; then
-    hyprctl dispatch focuswindow "initialClass:$APP_ID"
-    exit 0
+if command -v hyprctl > /dev/null 2>&1 && command -v jq > /dev/null 2>&1; then
+    if hyprctl clients -j | jq -e ".[] | select(.initialClass == \"$APP_ID\")" > /dev/null 2>&1; then
+        hyprctl dispatch focuswindow "initialClass:$APP_ID"
+        exit 0
+    fi
 fi
 
 # Unblock wifi in case rfkill had it blocked
