@@ -47,8 +47,8 @@ packages=(
     hyprlock
     hypridle
     hyprshot
-    blueman
-    network-manager-applet
+    bluetui
+    impala
     swaync
     cliphist
     wl-clipboard
@@ -183,3 +183,7 @@ else
 fi
 
 stow .
+
+# Make launcher scripts executable (deployed by stow above)
+chmod +x ~/.config/hypr/hypr-launch-bluetooth.sh
+chmod +x ~/.config/hypr/hypr-launch-wifi.sh
