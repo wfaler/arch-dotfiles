@@ -6,7 +6,25 @@
       "Bash(gh repo:*)",
       "Bash(gh api:*)",
       "Bash(gh auth:*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(mise current *)",
+      "Read(//usr/bin/**)",
+      "Bash(/usr/bin/python --version)",
+      "Bash(pacman -Q meson)",
+      "Bash(/usr/bin/meson --version)",
+      "Bash(python -c \"import mesonbuild\")",
+      "Bash(/usr/bin/python -c \"import mesonbuild\")",
+      "Read(//home/wfaler/.local/share/mise/installs/python/3.14.3/lib/python3.14/site-packages/**)",
+      "Bash(/usr/bin/python -c \"import mesonbuild; print\\('ok'\\)\")",
+      "Bash(/usr/bin/python -c \"import sys; print\\(sys.path\\)\")",
+      "Read(//tmp/pwvucontrol-test/**)",
+      "Bash(makepkg -s --noconfirm)",
+      "Bash(~/.local/share/mise/installs/python/3.14.3/bin/python -c \"import setuptools; print\\('ok'\\)\")",
+      "Bash(~/.local/share/mise/installs/python/3.14.3/bin/python -c \"import mesonbuild; print\\('ok'\\)\")",
+      "Read(//home/wfaler/.local/share/mise/shims/**)",
+      "Read(//home/wfaler/**)",
+      "Bash(echo \"mise exit=$?\")",
+      "Bash(echo \"fish exit=$?\")"
     ]
   }
 }

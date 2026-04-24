@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Strip user PATH (mise shims etc.) so AUR builds see /usr/bin/python, not a mise python missing setuptools/mesonbuild.
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/bin"
+
 # Update system first
 yay -Syu --noconfirm
 
@@ -50,7 +53,7 @@ packages=(
     bluetuith
     cliphist
     brightnessctl
-    pwvucontrol
+    pavucontrol
     wl-clipboard
     udiskie
     yazi
@@ -185,3 +188,10 @@ else
 fi
 
 stow .
+
+# Install mise-managed toolchains from ~/.config/mise/config.toml (now stowed)
+if is_installed "mise"; then
+    mise install
+    # Install rig. GOBIN forces output to ~/go/bin (fish PATH includes it).
+    GOBIN="$HOME/go/bin" mise exec -- go install github.com/wfaler/rig@latest
+fi

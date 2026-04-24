@@ -47,7 +47,7 @@ Hardware media keys work out of the box:
 | `XF86AudioMute` | Toggle mute (speakers) |
 | `XF86AudioMicMute` | Toggle mute (microphone) |
 
-Volume is managed via PipeWire/WirePlumber using `wpctl`. You can also click the volume icon in waybar to open `pwvucontrol` for detailed audio routing.
+Volume is managed via PipeWire/WirePlumber using `wpctl`. You can also click the volume icon in waybar to open `pavucontrol` for detailed audio routing.
 
 ## Brightness
 
@@ -109,7 +109,6 @@ Handled by `hypridle` and `hyprlock`:
 |---|---|
 | 5 minutes | Lock screen (hyprlock) |
 | 5.5 minutes | Turn off display |
-| 10 minutes | Suspend |
 
 Moving the mouse or pressing a key wakes the display. The lock screen shows the time and accepts your user password.
 

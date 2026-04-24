@@ -2,7 +2,7 @@
 node = "24"
 python = "3.14"
 ruby = "3.3"
-go = "latest"
+go = "1.26.2"
 
 [settings]
 
