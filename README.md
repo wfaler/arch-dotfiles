@@ -7,7 +7,7 @@ Contains my setup for:
 * All dev runtimes i use: Node, Go, Python (with Poetry), Ruby, Rust
 * All the apps I use, more or less, installed via `yay` in Arch
 ## Pre-requisites
-Assumes an Arch-based system, with the `yay` package-manager installed, and KDE Plasma (even though it uses Hyprland, we have some KDE tools configured as defaults, such as Dolphin for file management)
+Assumes an Arch-based system, with the `yay` package-manager installed. KDE Plasma is available as a separate session; Dolphin is used as the file manager in both environments
 
 ## Setup on Arch Linux
 Clone this repository into your home-folder, so you end up with `$HOME/dotfiles` and run the install script:
@@ -15,6 +15,8 @@ Clone this repository into your home-folder, so you end up with `$HOME/dotfiles`
 ./install.sh
 ```
 Reboot, pick Hyprland as your WM, and you're done!
+
+See [hyprland.md](hyprland.md) for a full keybinding reference and guide to managing volume, WiFi, Bluetooth, screenshots, and more.
 
 You might also want to open neovim with `nvim` and run `:Lazy install` to install all the plugins, followed by `:MasonInstallAll` to install all the mason plugins.
 

@@ -13,7 +13,7 @@
 
 {
     "label" : "logout",
-    "action" : "killall -9 Hyprland",
+    "action" : "hyprctl dispatch exit",
     "text" : "Exit",
     "keybind" : "e"
 }
@@ -21,7 +21,7 @@
     "label" : "shutdown",
     "action" : "poweroff",
     "text" : "Shutdown",
-    "keybind" : "s"
+    "keybind" : "p"
 }
 {
     "label" : "reboot",

@@ -36,20 +36,21 @@ packages=(
     fish
     fisher
     ## HYPRLAND & RELATED TOOLS
-#    hyprland
-#    wlogout
-#    waybar
-#    wofi
-    #xwaylandvideobridge # broken recently
-#    xdg-desktop-portal
-#    xdg-desktop-portal-hyprland
-#    xdg-desktop-portal-wlr
-#    hyprpaper
-#    hyprlock
-#    blueman
-#    network-manager-applet
-#    swayidle
-#    dunst
+    hyprland
+    wlogout
+    waybar
+    wofi
+    xdg-desktop-portal
+    xdg-desktop-portal-hyprland
+    hyprpaper
+    hyprlock
+    hypridle
+    hyprpolkitagent
+    swaync
+    bluetuith
+    cliphist
+    brightnessctl
+    pwvucontrol
     wl-clipboard
     udiskie
     yazi
