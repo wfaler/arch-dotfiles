@@ -29,7 +29,12 @@
       "Bash(hyprctl configerrors *)",
       "WebFetch(domain:wiki.hypr.land)",
       "Bash(hyprctl version *)",
-      "Bash(grep -oE 'windowrule[^<]{0,200}' /home/wfaler/.claude/projects/-home-wfaler-dotfiles/26d86845-7f89-4eec-b5fa-31a2a5b5774a/tool-results/b2wlc5bhp.txt)"
+      "Bash(grep -oE 'windowrule[^<]{0,200}' /home/wfaler/.claude/projects/-home-wfaler-dotfiles/26d86845-7f89-4eec-b5fa-31a2a5b5774a/tool-results/b2wlc5bhp.txt)",
+      "Bash(xdg-settings set *)",
+      "Bash(xdg-mime default *)",
+      "Bash(xdg-settings get *)",
+      "Bash(xdg-mime query *)",
+      "Bash(echo \"pdf default: $\\(xdg-mime query default application/pdf\\)\")"
     ]
   }
 }

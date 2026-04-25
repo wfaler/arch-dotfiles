@@ -81,6 +81,7 @@ packages=(
     darktable
     discord
     calibre
+    okular
     google-chrome
     tailscale
     fish
@@ -208,6 +209,25 @@ if [ -d "$script_dir/system" ]; then
         echo "logind config changed -- reboot or run 'sudo systemctl restart systemd-logind' to apply (this ends the session)."
     fi
 fi
+
+# Default application handlers. xdg-mime rewrites mimeapps.list on every call --
+# only call it when the value actually differs.
+declare -A xdg_defaults=(
+    [x-scheme-handler/http]=firefox.desktop
+    [x-scheme-handler/https]=firefox.desktop
+    [text/html]=firefox.desktop
+    [application/pdf]=org.kde.okular.desktop
+    [application/x-synology-drive-doc]=synology-drive-open-file.desktop
+    [application/x-synology-drive-sheet]=synology-drive-open-file.desktop
+    [application/x-synology-drive-slides]=synology-drive-open-file.desktop
+)
+for mime in "${!xdg_defaults[@]}"; do
+    desktop="${xdg_defaults[$mime]}"
+    if [ "$(xdg-mime query default "$mime" 2>/dev/null)" != "$desktop" ]; then
+        echo "Setting $mime default to $desktop..."
+        xdg-mime default "$desktop" "$mime"
+    fi
+done
 
 # Install mise-managed toolchains from ~/.config/mise/config.toml (now stowed)
 if is_installed "mise"; then
