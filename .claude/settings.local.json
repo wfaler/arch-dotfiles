@@ -34,7 +34,9 @@
       "Bash(xdg-mime default *)",
       "Bash(xdg-settings get *)",
       "Bash(xdg-mime query *)",
-      "Bash(echo \"pdf default: $\\(xdg-mime query default application/pdf\\)\")"
+      "Bash(echo \"pdf default: $\\(xdg-mime query default application/pdf\\)\")",
+      "Read(//home/wfaler/dotfiles/**)",
+      "Read(//etc/xdg/autostart/**)"
     ]
   }
 }

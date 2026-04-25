@@ -8,7 +8,7 @@ yay -Syu --noconfirm
 
 # List of packages to install
 packages=(
-    nvidia-inst # only for nvidia systems
+    #nvidia-inst # only for nvidia systems
     btop
     curl
     neovim
@@ -56,6 +56,7 @@ packages=(
     pavucontrol
     wl-clipboard
     udiskie
+    dex
     yazi
     grim
     slurp
@@ -228,6 +229,12 @@ for mime in "${!xdg_defaults[@]}"; do
         xdg-mime default "$desktop" "$mime"
     fi
 done
+
+# Trigger user XDG autostart now so first-install brings up 1Password / Synology Drive
+# without requiring a logout. Subsequent logins go through hyprland's exec-once.
+if is_installed "dex"; then
+    dex -a -s ~/.config/autostart >/dev/null 2>&1 || true
+fi
 
 # Install mise-managed toolchains from ~/.config/mise/config.toml (now stowed)
 if is_installed "mise"; then
