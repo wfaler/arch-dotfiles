@@ -24,7 +24,12 @@
       "Read(//home/wfaler/.local/share/mise/shims/**)",
       "Read(//home/wfaler/**)",
       "Bash(echo \"mise exit=$?\")",
-      "Bash(echo \"fish exit=$?\")"
+      "Bash(echo \"fish exit=$?\")",
+      "WebSearch",
+      "Bash(hyprctl configerrors *)",
+      "WebFetch(domain:wiki.hypr.land)",
+      "Bash(hyprctl version *)",
+      "Bash(grep -oE 'windowrule[^<]{0,200}' /home/wfaler/.claude/projects/-home-wfaler-dotfiles/26d86845-7f89-4eec-b5fa-31a2a5b5774a/tool-results/b2wlc5bhp.txt)"
     ]
   }
 }

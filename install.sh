@@ -189,6 +189,26 @@ fi
 
 stow .
 
+# Deploy system-level configs (root-owned, mirrors paths under system/).
+# Currently: logind drop-in for lid-close behavior. No-op on desktops.
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -d "$script_dir/system" ]; then
+    while IFS= read -r -d '' src; do
+        rel="${src#$script_dir/system/}"
+        dest="/$rel"
+        if ! sudo cmp -s "$src" "$dest" 2>/dev/null; then
+            echo "Installing $dest..."
+            sudo install -D -m 644 "$src" "$dest"
+            case "$dest" in
+                /etc/systemd/logind.conf.d/*) logind_changed=1 ;;
+            esac
+        fi
+    done < <(find "$script_dir/system" -type f -print0)
+    if [ "${logind_changed:-0}" = "1" ]; then
+        echo "logind config changed -- reboot or run 'sudo systemctl restart systemd-logind' to apply (this ends the session)."
+    fi
+fi
+
 # Install mise-managed toolchains from ~/.config/mise/config.toml (now stowed)
 if is_installed "mise"; then
     mise install

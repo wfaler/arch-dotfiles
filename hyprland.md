@@ -105,12 +105,46 @@ Managed by SwayNotificationCenter (`swaync`).
 
 Handled by `hypridle` and `hyprlock`:
 
-| Timeout | Action |
-|---|---|
-| 5 minutes | Lock screen (hyprlock) |
-| 5.5 minutes | Turn off display |
+| Timeout | Action | Condition |
+|---|---|---|
+| 5 minutes | Lock screen (hyprlock) | Always |
+| 5.5 minutes | Turn off display | Always |
+| 10 minutes | `systemctl suspend` | Only on battery |
 
 Moving the mouse or pressing a key wakes the display. The lock screen shows the time and accepts your user password.
+
+The 10-minute suspend is gated on AC status by reading `/sys/class/power_supply/A*/online` -- if the value is `0` (on battery) the system suspends, otherwise nothing happens. On a desktop (no battery) AC is always reported as online, so the listener is effectively a no-op. On a laptop it kicks in only when unplugged.
+
+### Suspend vs hibernate
+
+We currently use plain `systemctl suspend` (suspend-to-RAM): fast resume, but still drains battery slowly and loses state if the battery dies. To upgrade to `systemctl hibernate` or `systemctl suspend-then-hibernate` later, the system needs a working resume target -- typically a swap partition or swapfile sized >= RAM, plus the `resume=` kernel parameter. Once that's set up, replace `systemctl suspend` in `~/.config/hypr/hypridle.conf` with the preferred command. `suspend-then-hibernate` is generally the best fit for a laptop since it gives quick resume on short idle and falls back to hibernate after a configurable delay (`HibernateDelaySec` in `/etc/systemd/sleep.conf`).
+
+### Lid-close behavior
+
+Lid-close is handled by `systemd-logind`, not Hyprland or hypridle. The repo tracks a drop-in at `system/etc/systemd/logind.conf.d/99-lid.conf` which `install.sh` deploys to `/etc/systemd/logind.conf.d/99-lid.conf` via `sudo install`:
+
+```ini
+[Login]
+HandleLidSwitch=suspend
+HandleLidSwitchExternalPower=suspend
+HandleLidSwitchDocked=ignore
+```
+
+`install.sh` only copies when the file differs and prints a notice to reboot or run `sudo systemctl restart systemd-logind` to apply (the restart ends the current session). On a desktop these settings are no-ops since no lid-switch event ever fires. Adjust as desired -- e.g. set `HandleLidSwitchExternalPower=lock` if you'd rather have the laptop stay awake on AC and only lock the screen.
+
+### Framework 13 migration checklist
+
+Pre-flight checks before relying on the idle/suspend setup on the Framework 13:
+
+1. **Sleep type**: `cat /sys/power/mem_sleep` should show `[s2idle]`. Framework 13 only supports modern standby; this is expected, not a problem.
+2. **Power-supply paths**: `ls /sys/class/power_supply/` -- expect `ACAD` and `BAT1` (or similar). The `A*` glob in the hypridle listener matches `ACAD`.
+3. **AC detection**: `cat /sys/class/power_supply/A*/online` returns `1` plugged in, `0` on battery. Test both states.
+4. **Manual suspend works**: `systemctl suspend` from a terminal -- machine should suspend and resume cleanly via lid open / power button / keypress.
+5. **Polkit suspend permission**: as your user, `systemctl suspend` should not prompt for a password (default for active sessions on EndeavourOS).
+6. **Idle suspend fires on battery**: unplug, leave idle for 10 minutes, confirm it suspends.
+7. **Idle suspend does NOT fire on AC**: plug in, leave idle past 10 minutes, confirm it stays awake (display will still turn off at 5.5 min -- that's expected).
+8. **Lid-close config**: `systemctl show systemd-logind | grep HandleLidSwitch` shows the values from the drop-in file.
+9. **Suspend drain**: suspend for ~1 hour on battery, check % drop. Anything above ~5%/hour suggests a firmware/kernel issue worth investigating (not a config problem).
 
 The wlogout menu (`Super + M`) also provides manual lock, suspend, logout, reboot, and shutdown:
 
