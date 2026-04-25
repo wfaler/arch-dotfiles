@@ -3,3 +3,4 @@
 .config/fish/fish_plugins
 .config/fish/fish_variables
 .config/fish/functions/
+.config/hypr/hardware.conf

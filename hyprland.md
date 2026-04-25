@@ -56,7 +56,21 @@ Volume is managed via PipeWire/WirePlumber using `wpctl`. You can also click the
 | `XF86MonBrightnessUp` | Brightness up 10% |
 | `XF86MonBrightnessDown` | Brightness down 10% |
 
-Managed via `brightnessctl`.
+Managed via `brightnessctl`. Affects laptop backlight only -- external monitors don't respond to these keys (use the OSD or `ddcutil`).
+
+`hypridle` also drops the backlight to 30% after 60s idle when on battery, restoring to the previous value on activity. No-op on AC and on desktops without a battery.
+
+## Power Management
+
+`power-profiles-daemon` runs as a system service and switches the CPU governor automatically on AC/battery transitions (balanced ↔ power-saver). Inspect or override manually with `powerprofilesctl list` / `powerprofilesctl set <profile>`.
+
+If `powerprofilesctl` errors with `ModuleNotFoundError: No module named 'gi'`, mise's Python 3 is shadowing the system one in PATH. Workaround: `/usr/bin/python3 /usr/bin/powerprofilesctl ...`. The daemon itself works regardless of CLI status -- it's only the helper that's affected.
+
+## Autostart
+
+User-level XDG autostart entries in `~/.config/autostart/*.desktop` are launched at login via `dex -a -s ~/.config/autostart` (an `exec-once` in `hyprland.conf`). Apps like 1Password and Synology Drive drop their own entries there on install, so they come up automatically without further config.
+
+System-wide entries in `/etc/xdg/autostart` are intentionally ignored, so KDE Plasma autostart files (kdeconnect, kwallet, plasma welcome, print applet, etc.) don't fire under Hyprland.
 
 ## WiFi
 
@@ -107,6 +121,7 @@ Handled by `hypridle` and `hyprlock`:
 
 | Timeout | Action | Condition |
 |---|---|---|
+| 60 seconds | Dim backlight to 30% (saved → restored on resume) | Only on battery |
 | 5 minutes | Lock screen (hyprlock) | Always |
 | 5.5 minutes | Turn off display | Always |
 | 10 minutes | `systemctl suspend` | Only on battery |
