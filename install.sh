@@ -60,6 +60,7 @@ packages=(
     yazi
     grim
     slurp
+    ghostty
     ## VARIOUS CLIENT APPS
     slack-desktop-wayland
     spotify
@@ -208,6 +209,19 @@ if is_installed "power-profiles-daemon"; then
     if ! systemctl is-enabled --quiet power-profiles-daemon.service; then
         sudo systemctl enable --now power-profiles-daemon.service
         echo "power-profiles-daemon enabled and started."
+    fi
+fi
+
+# Set fish as the login shell (so Ghostty / SSH / tmux pick it up via $SHELL).
+fish_path="$(command -v fish)"
+if [ -n "$fish_path" ]; then
+    if ! grep -qxF "$fish_path" /etc/shells; then
+        echo "$fish_path" | sudo tee -a /etc/shells >/dev/null
+    fi
+    current_shell="$(getent passwd "$USER" | cut -d: -f7)"
+    if [ "$current_shell" != "$fish_path" ]; then
+        sudo chsh -s "$fish_path" "$USER"
+        echo "Login shell changed to $fish_path -- log out and back in to take effect."
     fi
 fi
 

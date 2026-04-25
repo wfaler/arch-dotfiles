@@ -36,7 +36,10 @@
       "Bash(xdg-mime query *)",
       "Bash(echo \"pdf default: $\\(xdg-mime query default application/pdf\\)\")",
       "Read(//home/wfaler/dotfiles/**)",
-      "Read(//etc/xdg/autostart/**)"
+      "Read(//etc/xdg/autostart/**)",
+      "WebFetch(domain:www.phoronix.com)",
+      "Bash(bash -n /home/wfaler/dotfiles/install.sh)",
+      "Bash(pacman -Ql ghostty)"
     ]
   }
 }
