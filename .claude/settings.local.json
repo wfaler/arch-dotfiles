@@ -40,7 +40,11 @@
       "WebFetch(domain:www.phoronix.com)",
       "Bash(bash -n /home/wfaler/dotfiles/install.sh)",
       "Bash(pacman -Ql ghostty)",
-      "Bash(chmod +x *)"
+      "Bash(chmod +x *)",
+      "Bash(hyprctl clients *)",
+      "WebFetch(domain:wiki.hyprland.org)",
+      "WebFetch(domain:forum.hypr.land)",
+      "Bash(file *)"
     ]
   }
 }
