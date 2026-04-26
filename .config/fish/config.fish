@@ -15,6 +15,7 @@ set -x PYTHON_PATH ~/.local/share/mise/installs/python/3.14.3/bin
 # Modify PATH
 fish_add_path $PYTHON_PATH
 fish_add_path ~/.local/share/mise/shims
+fish_add_path ~/go/bin
 #fish_add_path ~/.local/share/coursier/bin
 # Set up direnv hook (assuming direnv is installed)
 if command -v direnv >/dev/null
