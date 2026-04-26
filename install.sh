@@ -89,6 +89,8 @@ packages=(
     fish
     fisher
     libreoffice-fresh
+    remmina
+    freerdp
     ## IntelliJ for JVM work
     jdk21-temurin
     coursier
