@@ -44,7 +44,21 @@
       "Bash(hyprctl clients *)",
       "WebFetch(domain:wiki.hyprland.org)",
       "WebFetch(domain:forum.hypr.land)",
-      "Bash(file *)"
+      "Bash(file *)",
+      "Bash(hyprctl hyprpaper *)",
+      "Bash(hyprctl monitors *)",
+      "Bash(hyprpaper --version)",
+      "Bash(hyprctl getoption *)",
+      "Bash(journalctl --user -b --no-pager)",
+      "Bash(hyprpaper)",
+      "Bash(pkill -9 hyprpaper)",
+      "Bash(pacman -Ql hyprpaper)",
+      "Read(//usr/lib/systemd/user/**)",
+      "Bash(systemctl --user start hyprpaper.service)",
+      "Bash(systemctl --user status hyprpaper.service --no-pager)",
+      "Bash(journalctl --user -u hyprpaper.service --no-pager -n 30)",
+      "Bash(timeout 3 hyprpaper --verbose -c /home/wfaler/.config/hypr/hyprpaper.conf)",
+      "Read(//tmp/**)"
     ]
   }
 }
