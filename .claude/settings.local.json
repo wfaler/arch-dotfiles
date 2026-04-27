@@ -58,7 +58,10 @@
       "Bash(systemctl --user status hyprpaper.service --no-pager)",
       "Bash(journalctl --user -u hyprpaper.service --no-pager -n 30)",
       "Bash(timeout 3 hyprpaper --verbose -c /home/wfaler/.config/hypr/hyprpaper.conf)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(journalctl --user -t hyprpaper --since \"10 min ago\" --no-pager)",
+      "Bash(pacman -Qi hyprpaper)",
+      "Bash(kill 2686)"
     ]
   }
 }
