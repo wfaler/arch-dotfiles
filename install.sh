@@ -84,6 +84,7 @@ packages=(
     discord
     calibre
     okular
+    gwenview
     google-chrome
     tailscale
     fish
@@ -281,6 +282,10 @@ declare -A xdg_defaults=(
     [x-scheme-handler/https]=firefox.desktop
     [text/html]=firefox.desktop
     [application/pdf]=org.kde.okular.desktop
+    [image/jpeg]=org.kde.gwenview.desktop
+    [image/png]=org.kde.gwenview.desktop
+    [image/webp]=org.kde.gwenview.desktop
+    [image/gif]=org.kde.gwenview.desktop
     [application/x-synology-drive-doc]=synology-drive-open-file.desktop
     [application/x-synology-drive-sheet]=synology-drive-open-file.desktop
     [application/x-synology-drive-slides]=synology-drive-open-file.desktop
