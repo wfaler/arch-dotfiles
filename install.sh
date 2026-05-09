@@ -92,6 +92,11 @@ packages=(
     libreoffice-fresh
     remmina
     freerdp
+    vlc
+    ffmpeg
+    vlc-plugin-x264
+    vlc-plugin-ffmpeg
+    yt-dlp
     ## IntelliJ for JVM work
     jdk21-temurin
     coursier
