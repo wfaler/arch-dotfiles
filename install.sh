@@ -16,11 +16,9 @@ packages=(
     rustup
     zsh
     stow
-    docker
-    docker-buildx
-    docker-compose
-    oh-my-zsh-git
-    nerdfetch
+    podman
+    podman-compose
+    podman-docker
     direnv
     jq
     yq
@@ -30,7 +28,6 @@ packages=(
     pipewire
     wireplumber
     cargo-nextest
-    git-secret
     gnupg
     cloc
     tmux
@@ -60,7 +57,6 @@ packages=(
     yazi
     grim
     slurp
-    ghostty
     ## VARIOUS CLIENT APPS
     slack-desktop-wayland
     spotify
@@ -71,9 +67,7 @@ packages=(
     zoom
     #obs-studio
     obsidian
-    #whatsie
     todoist-appimage
-    beeper
    # bruno
     ib-tws
     #evolution
@@ -99,7 +93,7 @@ packages=(
     yt-dlp
     ## IntelliJ for JVM work
     jdk21-temurin
-    coursier
+#    coursier
     intellij-idea-ultimate-edition-jre
     intellij-idea-ultimate-edition
     gradle
@@ -185,16 +179,26 @@ else
     echo "All installations completed successfully."
     rm "$fail_log"
 fi
-if ! groups $USER | grep &>/dev/null '\bdocker\b'; then
-    sudo usermod -aG docker $USER
-    echo "User $USER added to the docker group."
-else
-    echo "User $USER is already in the docker group."
+# Rootless Podman setup: subuid/subgid map, user-level socket, lingering.
+if is_installed "podman"; then
+    needs_relogin=0
+    if ! grep -q "^$USER:" /etc/subuid 2>/dev/null; then
+        sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 "$USER"
+        echo "subuid/subgid assigned to $USER for rootless containers."
+        needs_relogin=1
+    fi
+    if ! systemctl --user is-enabled --quiet podman.socket 2>/dev/null; then
+        systemctl --user enable --now podman.socket \
+            || echo "Could not enable user podman.socket -- run 'systemctl --user enable --now podman.socket' after next login."
+    fi
+    if ! loginctl show-user "$USER" 2>/dev/null | grep -q "Linger=yes"; then
+        sudo loginctl enable-linger "$USER"
+        echo "Lingering enabled for $USER (rootless podman socket survives logout)."
+    fi
+    if [ "$needs_relogin" = "1" ]; then
+        echo "Log out and back in for subuid/subgid changes to take effect."
+    fi
 fi
-
-# Inform the user about the need to log out and back in
-echo "Please log out and back in for the changes to take effect."
-echo "Alternatively, you can run 'newgrp docker' to apply the changes in the current shell session."
 
 
 if systemctl is-enabled --quiet systemd-resolved; then
