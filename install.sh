@@ -13,11 +13,12 @@ packages=(
     neovim
     ripgrep
     nerd-fonts
-    rustup
+#    rustup
     stow
     podman
     podman-compose
     podman-docker
+    distrobox
     direnv
     jq
     yq
@@ -60,16 +61,12 @@ packages=(
     slack-desktop-wayland
     spotify
     synology-drive
-    claude-code
- #   gemini-cli-git
+ #   claude-code
     1password
  #   zoom
     #obs-studio
     obsidian
- #   todoist-appimage
-   # bruno
     ib-tws
-    #evolution
     #audacity
     protonmail-bridge
     proton-vpn-gtk-app
@@ -137,18 +134,6 @@ done
 # Remove unnecessary dependencies
 yay -Yc --noconfirm
 
-# Install Rust stable toolchain if rustup is installed
-#if is_installed "rustup"; then
-#    if rustup install stable && rustup default stable; then
-#        echo "Rust stable toolchain installed and set as default."
-#    else
-#        echo "Failed to install Rust stable toolchain. Logging and continuing..."
-#        echo "rustup_stable_toolchain" >> "$fail_log"
-#    fi
-#else
-#    echo "rustup is not installed. Skipping Rust toolchain installation."
-#fi
-
 # Install Kitty last
 if ! is_installed "kitty"; then
     echo "Installing kitty..."
@@ -159,16 +144,6 @@ if ! is_installed "kitty"; then
 else
     echo "Kitty is already installed. Skipping."
 fi
-#if ! is_installed "mise"; then
-#    echo "Installing mise..."
-#    if ! yay -S --noconfirm mise; then
-#        echo "Failed to install mise. Logging and continuing..."
-#        echo "mise" >> "$fail_log"
-#    fi
-#else
-#    echo "Mise is already installed. Skipping."
-#fi
-
 
 echo "All packages have been checked/installed. Unnecessary dependencies have been removed."
 
@@ -310,11 +285,4 @@ done
 # without requiring a logout. Subsequent logins go through hyprland's exec-once.
 if is_installed "dex"; then
     dex -a -s ~/.config/autostart >/dev/null 2>&1 || true
-fi
-
-# Install mise-managed toolchains from ~/.config/mise/config.toml (now stowed)
-if is_installed "mise"; then
-    mise install
-    # Install rig. GOBIN forces output to ~/go/bin (fish PATH includes it).
-    GOBIN="$HOME/go/bin" mise exec -- go install github.com/wfaler/rig@latest
 fi

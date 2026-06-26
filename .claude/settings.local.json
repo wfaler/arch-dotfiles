@@ -61,7 +61,11 @@
       "Read(//tmp/**)",
       "Bash(journalctl --user -t hyprpaper --since \"10 min ago\" --no-pager)",
       "Bash(pacman -Qi hyprpaper)",
-      "Bash(kill 2686)"
+      "Bash(kill 2686)",
+      "Bash(bash -n install.sh)",
+      "Bash(grep -nE '^\\\\$|wallpaper|hyprpaper' hypr/hyprland.conf)",
+      "Bash(grep -vE '^\\\\s*#|^\\\\s*$')",
+      "Bash(grep -i '\\\\$menu\\\\|= rofi\\\\|= wofi\\\\|drun')"
     ]
   }
 }
