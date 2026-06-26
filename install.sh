@@ -71,6 +71,7 @@ packages=(
     yazi
     grim
     slurp
+    socat
     ## VARIOUS CLIENT APPS
     slack-desktop-wayland
     spotify
