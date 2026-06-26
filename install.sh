@@ -14,7 +14,6 @@ packages=(
     ripgrep
     nerd-fonts
     rustup
-    zsh
     stow
     podman
     podman-compose
@@ -27,7 +26,7 @@ packages=(
     wireguard-tools
     pipewire
     wireplumber
-    cargo-nextest
+ #   cargo-nextest
     gnupg
     cloc
     tmux
@@ -62,12 +61,12 @@ packages=(
     spotify
     synology-drive
     claude-code
-    gemini-cli-git
+ #   gemini-cli-git
     1password
-    zoom
+ #   zoom
     #obs-studio
     obsidian
-    todoist-appimage
+ #   todoist-appimage
    # bruno
     ib-tws
     #evolution
@@ -92,11 +91,11 @@ packages=(
     vlc-plugin-ffmpeg
     yt-dlp
     ## IntelliJ for JVM work
-    jdk21-temurin
+  #  jdk21-temurin
 #    coursier
-    intellij-idea-ultimate-edition-jre
-    intellij-idea-ultimate-edition
-    gradle
+  #  intellij-idea-ultimate-edition-jre
+  #  intellij-idea-ultimate-edition
+  #  gradle
 )
 
 is_installed() {
@@ -139,16 +138,16 @@ done
 yay -Yc --noconfirm
 
 # Install Rust stable toolchain if rustup is installed
-if is_installed "rustup"; then
-    if rustup install stable && rustup default stable; then
-        echo "Rust stable toolchain installed and set as default."
-    else
-        echo "Failed to install Rust stable toolchain. Logging and continuing..."
-        echo "rustup_stable_toolchain" >> "$fail_log"
-    fi
-else
-    echo "rustup is not installed. Skipping Rust toolchain installation."
-fi
+#if is_installed "rustup"; then
+#    if rustup install stable && rustup default stable; then
+#        echo "Rust stable toolchain installed and set as default."
+#    else
+#        echo "Failed to install Rust stable toolchain. Logging and continuing..."
+#        echo "rustup_stable_toolchain" >> "$fail_log"
+#    fi
+#else
+#    echo "rustup is not installed. Skipping Rust toolchain installation."
+#fi
 
 # Install Kitty last
 if ! is_installed "kitty"; then
@@ -160,15 +159,15 @@ if ! is_installed "kitty"; then
 else
     echo "Kitty is already installed. Skipping."
 fi
-if ! is_installed "mise"; then
-    echo "Installing mise..."
-    if ! yay -S --noconfirm mise; then
-        echo "Failed to install mise. Logging and continuing..."
-        echo "mise" >> "$fail_log"
-    fi
-else
-    echo "Mise is already installed. Skipping."
-fi
+#if ! is_installed "mise"; then
+#    echo "Installing mise..."
+#    if ! yay -S --noconfirm mise; then
+#        echo "Failed to install mise. Logging and continuing..."
+#        echo "mise" >> "$fail_log"
+#    fi
+#else
+#    echo "Mise is already installed. Skipping."
+#fi
 
 
 echo "All packages have been checked/installed. Unnecessary dependencies have been removed."
