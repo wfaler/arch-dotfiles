@@ -62,7 +62,6 @@ packages=(
     swaync
     bluetuith
     cliphist
-    brightnessctl
     pavucontrol
     wl-clipboard
     udiskie
@@ -127,6 +126,23 @@ gpu_info=$(lspci 2>/dev/null | grep -iE 'vga|3d|display')
 echo "$gpu_info" | grep -qiE 'amd|ati|advanced micro' && packages+=(vulkan-radeon libva-mesa-driver)
 echo "$gpu_info" | grep -qi  intel                    && packages+=(vulkan-intel intel-media-driver)
 echo "$gpu_info" | grep -qi  nvidia                   && packages+=(nvidia-dkms nvidia-utils libva-nvidia-driver)
+
+# Laptop detection: a battery under /sys/class/power_supply means this is a laptop
+# (same signal hypridle uses for its on-battery listeners). Append power-management
+# + laptop-only userspace. thermald is Intel-only; AMD uses the in-kernel amd_pstate
+# driver via power-profiles-daemon, so it needs no extra package.
+if compgen -G "/sys/class/power_supply/BAT*" >/dev/null 2>&1; then
+    echo "Laptop detected -- adding laptop power-management packages."
+    #   brightnessctl: internal-panel backlight (useless on a desktop)
+    #   upower:        battery state for the waybar battery module + tooling
+    #   fwupd:         firmware/BIOS updates via LVFS (Framework recommends)
+    #   fprintd/libfprint: fingerprint reader
+    packages+=(brightnessctl upower fwupd fprintd libfprint)
+    if [ "$cpu_vendor" = "GenuineIntel" ]; then
+        echo "Intel laptop -- adding thermald."
+        packages+=(thermald)
+    fi
+fi
 
 fail_log="install_fail.txt"
 
@@ -210,6 +226,22 @@ if is_installed "power-profiles-daemon"; then
     if ! systemctl is-enabled --quiet power-profiles-daemon.service; then
         sudo systemctl enable --now power-profiles-daemon.service
         echo "power-profiles-daemon enabled and started."
+    fi
+fi
+
+# Laptop power services. Only installed on laptops, so is_installed gates them;
+# fprintd and upower are D-Bus/socket-activated and need no explicit enable.
+if is_installed "thermald"; then
+    if ! systemctl is-enabled --quiet thermald.service; then
+        sudo systemctl enable --now thermald.service
+        echo "thermald enabled and started."
+    fi
+fi
+if is_installed "fwupd"; then
+    # Periodic LVFS metadata refresh (the fwupd service itself is socket-activated).
+    if ! systemctl is-enabled --quiet fwupd-refresh.timer; then
+        sudo systemctl enable --now fwupd-refresh.timer
+        echo "fwupd-refresh.timer enabled."
     fi
 fi
 

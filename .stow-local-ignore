@@ -1,0 +1,20 @@
+# Stow ignore list. NOTE: providing this file REPLACES stow's built-in default
+# ignore list, so the git/editor entries below are re-included on purpose.
+#
+# These top-level repo entries are NOT home dotfiles and must not be symlinked
+# into $HOME. In particular `system/` is deployed to /etc by install.sh (via
+# sudo install), not by stow.
+^/system$
+^/install\.sh$
+^/docker_to_podman\.sh$
+^/hyprland\.md$
+^/VIM\.md$
+^/README\.md$
+
+# --- re-included stow defaults ---
+\.git
+\.gitignore
+\.gitmodules
+\.stow-local-ignore
+.+~
+\#.*\#
