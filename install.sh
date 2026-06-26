@@ -3,8 +3,22 @@
 # Strip user PATH (mise shims etc.) so AUR builds see /usr/bin/python, not a mise python missing setuptools/mesonbuild.
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/bin"
 
+# AUR helper: Arch/EndeavourOS default to yay, CachyOS ships paru. Override with
+# AUR_HELPER=paru; otherwise auto-detect (prefer yay). Flags below (-Syu/-S/-Yc)
+# are identical between the two.
+if [ -n "$AUR_HELPER" ]; then
+    aur="$AUR_HELPER"
+elif command -v yay >/dev/null 2>&1; then
+    aur="yay"
+elif command -v paru >/dev/null 2>&1; then
+    aur="paru"
+else
+    echo "No AUR helper found (need yay or paru). Install one or set AUR_HELPER." >&2
+    exit 1
+fi
+
 # Update system first
-yay -Syu --noconfirm
+"$aur" -Syu --noconfirm
 
 # List of packages to install
 packages=(
@@ -122,7 +136,7 @@ fail_log="install_fail.txt"
 for package in "${packages[@]}"; do
     if ! is_installed "$package"; then
         echo "Installing $package..."
-        if ! yay -S --noconfirm "$package"; then
+        if ! "$aur" -S --noconfirm "$package"; then
             echo "Failed to install $package. Logging and continuing..."
             echo "$package" >> "$fail_log"
         fi
@@ -132,12 +146,12 @@ for package in "${packages[@]}"; do
 done
 
 # Remove unnecessary dependencies
-yay -Yc --noconfirm
+"$aur" -Yc --noconfirm
 
 # Install Kitty last
 if ! is_installed "kitty"; then
     echo "Installing kitty..."
-    if ! yay -S --noconfirm kitty; then
+    if ! "$aur" -S --noconfirm kitty; then
         echo "Failed to install Kitty. Logging and continuing..."
         echo "Kitty" >> "$fail_log"
     fi

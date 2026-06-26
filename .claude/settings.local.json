@@ -65,7 +65,8 @@
       "Bash(bash -n install.sh)",
       "Bash(grep -nE '^\\\\$|wallpaper|hyprpaper' hypr/hyprland.conf)",
       "Bash(grep -vE '^\\\\s*#|^\\\\s*$')",
-      "Bash(grep -i '\\\\$menu\\\\|= rofi\\\\|= wofi\\\\|drun')"
+      "Bash(grep -i '\\\\$menu\\\\|= rofi\\\\|= wofi\\\\|drun')",
+      "Bash(grep -nE 'monitor|^\\\\$|exec-once|workspace =|bindl.*switch|source' hyprland.conf)"
     ]
   }
 }
