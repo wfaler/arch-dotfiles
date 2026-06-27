@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Launch the host Neovim CONFIG inside an isolated rootless-podman container.
+#
+# The container sees ONLY:
+#   - ~/.config/nvim            -> read-only SEED, copied into the box's own writable
+#                                  config by the entrypoint (the box never writes back
+#                                  to your host config or lazy-lock.json)
+#   - ~/.claude/.credentials.json (if present) -> Claude auth token, so `claude` is logged in
+#   - the current directory     -> /work (rw)  (your project files, and only these)
+#
+# Everything else -- the box's config copy, plugins, treesitter parsers, Mason, AND
+# all language caches (cargo, go, coursier/ivy/sbt, npm, uv) -- lives in ONE persistent
+# named volume (nvim-box-home), isolated from the host home but kept across runs so
+# builds and LSPs don't re-download every time. First run bootstraps lazy.nvim + parsers.
+#
+# Usage:  nvim-box [nvim args...]        e.g.  nvim-box src/main.rs
+set -euo pipefail
+
+IMAGE="${NVIM_BOX_IMAGE:-localhost/nvim-box:latest}"
+
+if ! podman image exists "$IMAGE"; then
+    echo "nvim-box: image '$IMAGE' not found. Build it with:" >&2
+    echo "  podman build -t nvim-box ~/dotfiles/nvim-box" >&2
+    exit 1
+fi
+
+# Share only Claude's auth token (not the whole ~/.claude) so `claude` is logged
+# in; skip cleanly if it doesn't exist so podman never creates a stray file.
+extra=()
+creds="$HOME/.claude/.credentials.json"
+[ -f "$creds" ] && extra+=( -v "$creds:/home/dev/.claude/.credentials.json" )
+
+exec podman run --rm -it \
+    --userns=keep-id \
+    --hostname nvim-box \
+    -v nvim-box-home:/home/dev \
+    -v "$HOME/.config/nvim:/seed/nvim:ro" \
+    "${extra[@]}" \
+    -v "$PWD:/work:rw" \
+    -w /work \
+    "$IMAGE" nvim "$@"

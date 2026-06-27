@@ -1,0 +1,88 @@
+# Isolated Neovim dev container.
+#
+# Arch-based ON PURPOSE: matches the host glibc, so the treesitter parsers and
+# any compiled binaries built inside the container stay ABI-compatible (and they
+# live in podman volumes, never shared with the host's ~/.local/share/nvim).
+#
+# This image carries the toolchains + LSPs/formatters that the nvim config
+# resolves off $PATH (it does NOT use Mason auto-install). Extend the marked
+# section below for languages you add later.
+FROM quay.io/archlinux/archlinux:latest
+
+# Match the host user so files written to the mounted workdir are owned by you
+# under rootless podman + --userns=keep-id.
+ARG UID=1000
+ARG GID=1000
+
+# System tools + language runtimes + LSPs/formatters available in the Arch repos.
+RUN pacman -Syu --noconfirm --needed \
+        base-devel git curl wget unzip tar openssh \
+        neovim ripgrep fd lazygit \
+        go nodejs npm python uv \
+        jdk-openjdk rustup kotlin sbt \
+        gopls rust-analyzer pyright lua-language-server ruff \
+    && pacman -Scc --noconfirm
+
+# Rust toolchain (cargo/rustc shims come from the rustup package).
+RUN rustup default stable
+
+# Node-based servers/formatters not packaged (ts_ls, the Vue plugin, prettier) +
+# Claude Code CLI (the `claude` binary used by claude-code.nvim).
+RUN npm install -g --silent \
+        typescript typescript-language-server @vue/typescript-plugin prettier \
+        @anthropic-ai/claude-code \
+    && npm cache clean --force
+
+# Go tooling: gofmt ships with go; goimports installed to a PATH dir.
+ENV GOBIN=/usr/local/bin
+RUN go install golang.org/x/tools/cmd/goimports@latest
+
+# stylua (Lua formatter) via cargo, into a system PATH dir.
+RUN cargo install stylua --root /usr/local
+
+# coursier launcher -- lets nvim-metals bootstrap Scala's Metals on first use.
+RUN curl -fLo /usr/local/bin/cs \
+        https://github.com/coursier/launchers/raw/master/cs-x86_64-pc-linux \
+    && chmod +x /usr/local/bin/cs
+
+# --- JVM extras for the nvim Scala/Kotlin/Java workflow ---
+# Scala = JDK + sbt (both from pacman above; sbt bootstraps the per-project Scala
+# version, and it's the neotest-scala runner). Metals self-installs via coursier on
+# the first Scala file -- there is no standalone "scala" package. kotlinc comes from
+# the kotlin package. The pinned bits below cover Java formatting and the Kotlin LSP.
+ARG GJF_VERSION=1.25.2
+
+# google-java-format -- conform's Java formatter (runnable jar + wrapper).
+RUN curl -fsSL -o /opt/google-java-format.jar \
+        "https://github.com/google/google-java-format/releases/download/v${GJF_VERSION}/google-java-format-${GJF_VERSION}-all-deps.jar" \
+    && printf '#!/bin/sh\nexec java -jar /opt/google-java-format.jar "$@"\n' > /usr/local/bin/google-java-format \
+    && chmod +x /usr/local/bin/google-java-format
+
+# kotlin-lsp (JetBrains experimental, `kotlin-lsp --stdio`). No stable public URL
+# to pin, so pass one to enable it:  --build-arg KOTLIN_LSP_URL=<zip url>
+# Without it the build skips kotlin-lsp -- the Kotlin LSP just won't start; the
+# rest of the Kotlin workflow (treesitter, neotest-kotlin) still works.
+ARG KOTLIN_LSP_URL=
+RUN if [ -n "$KOTLIN_LSP_URL" ]; then \
+        curl -fsSL -o /tmp/kls.zip "$KOTLIN_LSP_URL" \
+        && mkdir -p /opt/kotlin-lsp && unzip -q /tmp/kls.zip -d /opt/kotlin-lsp \
+        && ln -s "$(find /opt/kotlin-lsp -name kotlin-lsp.sh | head -1)" /usr/local/bin/kotlin-lsp \
+        && rm /tmp/kls.zip ; \
+    else echo "kotlin-lsp: no KOTLIN_LSP_URL build-arg -- skipping (set it to enable)"; fi
+
+# rsync for the entrypoint's config seeding (late layer keeps the toolchain cached).
+RUN pacman -S --noconfirm --needed rsync && pacman -Scc --noconfirm
+
+# Entrypoint copies the read-only host config into the box's writable home so the
+# box never writes back to the host config / lazy-lock.json.
+COPY entrypoint.sh /usr/local/bin/nvim-box-entrypoint
+RUN chmod +x /usr/local/bin/nvim-box-entrypoint
+
+# Non-root user matching the host UID/GID.
+RUN groupadd -g "$GID" dev 2>/dev/null || true \
+    && useradd -m -u "$UID" -g "$GID" -s /bin/bash dev
+USER dev
+ENV HOME=/home/dev
+ENV PATH="/home/dev/.local/bin:/home/dev/go/bin:/usr/local/bin:${PATH}"
+WORKDIR /work
+ENTRYPOINT ["/usr/local/bin/nvim-box-entrypoint"]

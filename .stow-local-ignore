@@ -5,6 +5,8 @@
 # into $HOME. In particular `system/` is deployed to /etc by install.sh (via
 # sudo install), not by stow.
 ^/system$
+^/nvim-box$
+^/distrobox$
 ^/install\.sh$
 ^/docker_to_podman\.sh$
 ^/hyprland\.md$

@@ -36,6 +36,7 @@ packages=(
     direnv
     jq
     yq
+    lazygit
     clang
     wget
     wireguard-tools
@@ -332,4 +333,29 @@ done
 # without requiring a logout. Subsequent logins go through hyprland's exec-once.
 if is_installed "dex"; then
     dex -a -s ~/.config/autostart >/dev/null 2>&1 || true
+fi
+
+# Isolated Neovim container: build the image (idempotent) and install the launcher.
+# Strict "only the nvim config + cwd" isolation needs rootless podman, not distrobox
+# (distrobox always shares $HOME); see nvim-box/.
+if is_installed "podman" && [ -d "$script_dir/nvim-box" ]; then
+    if ! podman image exists localhost/nvim-box:latest; then
+        echo "Building nvim-box container image (first build, may take a while)..."
+        podman build --build-arg UID="$(id -u)" --build-arg GID="$(id -g)" \
+            -t nvim-box "$script_dir/nvim-box" \
+            || echo "nvim-box build failed -- run 'podman build -t nvim-box $script_dir/nvim-box' later."
+    fi
+    install -D -m 755 "$script_dir/nvim-box/nvim-box" "$HOME/.local/bin/nvim-box"
+    echo "nvim-box launcher installed to ~/.local/bin/nvim-box"
+fi
+
+# Integrated GUI/JVM distrobox (IntelliJ Ultimate + Scala/Kotlin/Java toolchain).
+# Shares $HOME + display so GUI apps work. Heavy first build (downloads IntelliJ);
+# skipped if the container already exists.
+if is_installed "distrobox" && [ -f "$script_dir/distrobox/distrobox.ini" ]; then
+    if ! distrobox list 2>/dev/null | grep -q "arch-dev"; then
+        echo "Assembling arch-dev distrobox (downloads IntelliJ + toolchain; may take a while)..."
+        distrobox assemble create --file "$script_dir/distrobox/distrobox.ini" \
+            || echo "distrobox assemble failed -- run 'distrobox assemble create --file $script_dir/distrobox/distrobox.ini' later."
+    fi
 fi
