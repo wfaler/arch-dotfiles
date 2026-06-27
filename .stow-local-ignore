@@ -8,6 +8,7 @@
 ^/nvim-box$
 ^/distrobox$
 ^/install\.sh$
+^/SAVEGAME\.md$
 ^/docker_to_podman\.sh$
 ^/hyprland\.md$
 ^/VIM\.md$
