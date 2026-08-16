@@ -1,6 +1,6 @@
 {
     "label" : "lock",
-    "action" : "hyprlock & sleep 0.5 && hyprctl dispatch dpms off",
+    "action" : "hyprlock & sleep 0.5 && hyprctl dispatch 'hl.dsp.dpms(\"off\")'",
     "text" : "Lock",
     "keybind" : "l"
 }
@@ -13,7 +13,7 @@
 
 {
     "label" : "logout",
-    "action" : "hyprctl dispatch exit",
+    "action" : "hyprctl dispatch 'hl.dsp.exit()'",
     "text" : "Exit",
     "keybind" : "e"
 }

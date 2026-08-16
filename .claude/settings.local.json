@@ -67,7 +67,20 @@
       "Bash(grep -vE '^\\\\s*#|^\\\\s*$')",
       "Bash(grep -i '\\\\$menu\\\\|= rofi\\\\|= wofi\\\\|drun')",
       "Bash(grep -nE 'monitor|^\\\\$|exec-once|workspace =|bindl.*switch|source' hyprland.conf)",
-      "Bash(compgen -G \"/sys/class/power_supply/BAT*\")"
+      "Bash(compgen -G \"/sys/class/power_supply/BAT*\")",
+      "WebFetch(domain:hypr.land)",
+      "Read(//usr/share/hypr/**)",
+      "Read(//usr/share/**)",
+      "Bash(pacman -Ql hyprland)",
+      "Bash(hyprctl --help)",
+      "Bash(hyprctl repl *)",
+      "Bash(hyprctl binds *)",
+      "Bash(luac -p hyprland.lua)",
+      "Bash(git reset *)",
+      "Bash(git checkout *)",
+      "Bash(hyprctl reload *)",
+      "Bash(bash -n .config/hypr/scripts/monitors.sh)",
+      "Bash(bash .config/hypr/scripts/monitors.sh)"
     ]
   }
 }

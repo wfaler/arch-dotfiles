@@ -11,6 +11,6 @@ if [ -n "$selected" ]; then
     # Extract window address from selection
     window_address=$(echo "$selected" | awk '{print $NF}')
     # Focus the selected window
-    hyprctl dispatch focuswindow "address:$window_address"
+    hyprctl dispatch "hl.dsp.focus({ window = 'address:$window_address' })"
 fi
 

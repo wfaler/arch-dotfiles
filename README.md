@@ -30,10 +30,10 @@ The `install.sh` script is idempotent, so can also be used for system updates, o
 - Intel GPU → `vulkan-intel`, `intel-media-driver`
 - Nvidia GPU → `nvidia-dkms`, `nvidia-utils`, `libva-nvidia-driver`
 
-It also generates `~/.config/hypr/hardware.conf` (gitignored) with vendor-specific Hyprland env vars -- mainly for Nvidia (`LIBVA_DRIVER_NAME`, `__GLX_VENDOR_LIBRARY_NAME`, `NVD_BACKEND`, `ELECTRON_OZONE_PLATFORM_HINT`). The main `hyprland.conf` sources this fragment.
+It also generates `~/.config/hypr/hardware.lua` (gitignored) with vendor-specific Hyprland env vars -- mainly for Nvidia (`LIBVA_DRIVER_NAME`, `__GLX_VENDOR_LIBRARY_NAME`, `NVD_BACKEND`, `ELECTRON_OZONE_PLATFORM_HINT`). The main `hyprland.lua` `require`s this fragment.
 
 ### Nvidia notes
-Pick "proprietary Nvidia" in the EndeavourOS installer so mkinitcpio MODULES, `linux-headers`, and the `nvidia_drm.modeset=1` kernel cmdline are configured at OS install time. `install.sh` then becomes a no-op for the Nvidia stack itself; only the Hyprland env-var stanza in `hardware.conf` is added.
+Pick "proprietary Nvidia" in the EndeavourOS installer so mkinitcpio MODULES, `linux-headers`, and the `nvidia_drm.modeset=1` kernel cmdline are configured at OS install time. `install.sh` then becomes a no-op for the Nvidia stack itself; only the Hyprland env-var stanza in `hardware.lua` is added.
 
 ### Issues
 **pop-up windows for auth etc are just a tiny address bar on Brave and Chrome**

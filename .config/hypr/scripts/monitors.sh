@@ -16,6 +16,18 @@ SCALE_4K=1      # 3840x2160 4K -- bump to 1.5 or 2 if the UI is too small
 
 mons=$(hyprctl monitors all -j)
 
+# Apply a monitor rule. Hyprland >= 0.55 with a lua config takes `hyprctl eval`
+# (it prints "ok" on success); pre-lua .conf sessions still need `hyprctl keyword`.
+set_monitor() { # name mode position scale
+    hyprctl eval "hl.monitor({ output = \"$1\", mode = \"$2\", position = \"$3\", scale = $4 })" 2>&1 |
+        grep -qx "ok" || hyprctl keyword monitor "$1,$2,$3,$4"
+}
+
+disable_monitor() { # name
+    hyprctl eval "hl.monitor({ output = \"$1\", disabled = true })" 2>&1 |
+        grep -qx "ok" || hyprctl keyword monitor "$1,disable"
+}
+
 # Modes ("WxH@Hz") advertised by monitor $1.
 modes_of() { echo "$mons" | jq -r --arg n "$1" '.[] | select(.name==$n) | .availableModes[]'; }
 
@@ -52,16 +64,16 @@ done <<< "$externals"
 
 if [ -n "$chosen_name" ]; then
     echo "monitors: driving $chosen_name at $chosen_mode (scale $chosen_scale); laptop panel off"
-    hyprctl keyword monitor "$chosen_name,$chosen_mode,0x0,$chosen_scale"
-    if [ -n "$edp" ]; then hyprctl keyword monitor "$edp,disable"; fi
+    set_monitor "$chosen_name" "$chosen_mode" "0x0" "$chosen_scale"
+    if [ -n "$edp" ]; then disable_monitor "$edp"; fi
 else
     echo "monitors: no known external; laptop panel on"
     if [ -n "$edp" ]; then
-        hyprctl keyword monitor "$edp,$(native_mode "$edp"),auto,$SCALE_EDP"
+        set_monitor "$edp" "$(native_mode "$edp")" "auto" "$SCALE_EDP"
     fi
     # Drive any unknown external at its native resolution + highest refresh too.
     while read -r name; do
         [ -z "$name" ] && continue
-        hyprctl keyword monitor "$name,$(native_mode "$name"),auto,1"
+        set_monitor "$name" "$(native_mode "$name")" "auto" 1
     done <<< "$externals"
 fi

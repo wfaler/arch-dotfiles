@@ -68,7 +68,7 @@ If `powerprofilesctl` errors with `ModuleNotFoundError: No module named 'gi'`, m
 
 ## Autostart
 
-User-level XDG autostart entries in `~/.config/autostart/*.desktop` are launched at login via `dex -a -s ~/.config/autostart` (an `exec-once` in `hyprland.conf`). Apps like 1Password and Synology Drive drop their own entries there on install, so they come up automatically without further config.
+User-level XDG autostart entries in `~/.config/autostart/*.desktop` are launched at login via `dex -a -s ~/.config/autostart` (an `hl.exec_cmd` on the `hyprland.start` event in `hyprland.lua`). Apps like 1Password and Synology Drive drop their own entries there on install, so they come up automatically without further config.
 
 System-wide entries in `/etc/xdg/autostart` are intentionally ignored, so KDE Plasma autostart files (kdeconnect, kwallet, plasma welcome, print applet, etc.) don't fire under Hyprland.
 
