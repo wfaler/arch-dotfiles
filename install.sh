@@ -103,7 +103,7 @@ packages=(
     vlc-plugin-ffmpeg
     yt-dlp
     ## IntelliJ for JVM work
-    jdk21-temurin
+    jdk25-temurin
 #    coursier
     intellij-idea-ultimate-edition-jre
     intellij-idea-ultimate-edition
