@@ -46,6 +46,7 @@ packages=(
     gnupg
     cloc
     tmux
+    mise
     tailscale
     fish
     fisher
@@ -90,7 +91,7 @@ packages=(
     calibre
     okular
     gwenview
-    google-chrome
+  #  google-chrome
     tailscale
     fish
     fisher
@@ -101,13 +102,14 @@ packages=(
     ffmpeg
     vlc-plugin-x264
     vlc-plugin-ffmpeg
-    yt-dlp
+#    yt-dlp
     ## IntelliJ for JVM work
     jdk25-temurin
 #    coursier
     intellij-idea-ultimate-edition-jre
     intellij-idea-ultimate-edition
     gradle
+    herdr-bin
 )
 
 is_installed() {
