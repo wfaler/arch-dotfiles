@@ -10,7 +10,11 @@
 # that resolution advertises. eDP operations are no-ops on the desktop.
 set -uo pipefail
 
-SCALE_EDP=1.5   # Framework 13 2256x1504 panel (adjust to taste: 1.333 / 1.6 ...)
+# Framework 13 2.8k panel (2880x1920) -> 1800x1200 logical at 1.6.
+# Hyprland only accepts scales that divide the panel into whole pixels:
+# 1.25 (2304x1536), 1.6 (1800x1200) and 2 (1440x960) are the useful alternatives.
+# (KWin remembers 1.7 for this panel; that one is not representable here.)
+SCALE_EDP=1.6
 SCALE_UW=1      # 3840x1600 ultrawide
 SCALE_4K=1      # 3840x2160 4K -- bump to 1.5 or 2 if the UI is too small
 

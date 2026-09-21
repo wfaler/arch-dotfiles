@@ -21,6 +21,17 @@ hl.monitor({
     scale    = "auto",
 })
 
+-- The laptop panel by name, so the catch-all's `scale = "auto"` (which picks 2 on the
+-- Framework 13 2.8k panel) never wins. Every config reload re-applies these rules and
+-- would otherwise silently undo the scale monitors.sh set at startup.
+-- Keep in sync with SCALE_EDP in scripts/monitors.sh. No-op on the desktop (no eDP-1).
+hl.monitor({
+    output   = "eDP-1",
+    mode     = "preferred",
+    position = "auto",
+    scale    = 1.6,
+})
+
 
 ---------------------
 ---- MY PROGRAMS ----
@@ -78,7 +89,7 @@ hl.env("XDG_SESSION_DESKTOP", "Hyprland")
 hl.config({
     general = {
         gaps_in  = 5,
-        gaps_out = 10,
+        gaps_out = 5,
 
         border_size = 2,
 

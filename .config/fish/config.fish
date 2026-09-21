@@ -7,17 +7,18 @@ alias vim='nvim'
 if test -f ~/.envrc.fish
     source ~/.envrc.fish
 end
-
 # Set environment variables
 set -x EDITOR nvim
-set -x PYTHON_PATH ~/.local/share/mise/installs/python/3.14.3/bin
+set -x PYTHON_PATH ~/.local/share/mise/installs/python/3.13/bin
+#set -gx TERM xterm-256color
 
-# Modify PATH
 fish_add_path $PYTHON_PATH
 fish_add_path ~/.local/share/mise/shims
-fish_add_path ~/go/bin
-fish_add_path ~/.local/bin
-#fish_add_path ~/.local/share/coursier/bin
+fish_add_path ~/.rustup/toolchains/stable-aarch64-apple-darwin/bin
+fish_add_path ~/.cargo/bin
+
+fish_add_path ~/.local/share/coursier/bin
+fish_add_path ~/.sdkman/candidates/gradle/current/bin/
 # Set up direnv hook (assuming direnv is installed)
 if command -v direnv >/dev/null
     direnv hook fish | source
@@ -44,3 +45,4 @@ if type -q fishline
     # Or create a custom theme
     set FLINE_THEME pwd git jobs vi_mode arrow
 end
+
