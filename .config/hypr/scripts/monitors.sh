@@ -265,3 +265,15 @@ else
         set_monitor "$name" "$mode" "auto" "$(policy_scale "$name" "$mode")"
     done <<< "$externals"
 fi
+
+# Audio follows the display: the monitor's own output when one is attached, the
+# built-in card when it is not. Backgrounded because with a display attached it
+# waits for the audio sink to show up -- the ELD/jack state lags the DRM hotplug.
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -x "$here/audio-follow-display.sh" ]; then
+    if [ -n "$(echo "$externals" | tr -d "[:space:]")" ]; then
+        "$here/audio-follow-display.sh" expect-display &
+    else
+        "$here/audio-follow-display.sh" &
+    fi
+fi

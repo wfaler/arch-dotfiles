@@ -22,6 +22,7 @@ fi
 
 # List of packages to install
 packages=(
+    wiremix
     btop
     curl
     neovim

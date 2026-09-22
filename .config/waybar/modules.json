@@ -136,7 +136,7 @@
         "tooltip-format-ethernet": "  {ifname} ({ipaddr}/{cidr})",
         "tooltip-format-disconnected": "Disconnected",
         "max-length": 50,
-        "on-click": "kitty -e nmtui"
+        "on-click": "kitty --class=nmtui -e nmtui"
     },
 
     // Battery
@@ -173,7 +173,11 @@
             "car": "",
             "default": ["", " ", " "]
         },
-        "on-click": "pavucontrol"
+        // Left click: wiremix TUI (device + per-app routing). Right click: the GTK
+        // mixer, for the rare thing wiremix does not cover.
+        "tooltip-format": "{desc} \u00b7 {volume}%",
+        "on-click": "kitty --class=wiremix -e wiremix",
+        "on-click-right": "pavucontrol"
     },
 
     // Bluetooth
@@ -181,7 +185,7 @@
         "format-disabled": "",
         "format-off": "",
         "interval": 30,
-        "on-click": "kitty -e bluetuith",
+        "on-click": "kitty --class=bluetuith -e bluetuith",
         "format-no-controller": ""
     },
 

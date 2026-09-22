@@ -243,11 +243,17 @@ hl.bind("Print", hl.dsp.exec_cmd("grim - | wl-copy"))
 -- Clipboard history
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("cliphist list | wofi --dmenu | cliphist decode | wl-copy"))
 
+-- Pop-up system TUIs. --class is what the float rule further down matches on:
+-- without it every one of these shares the terminal's own class and floating one
+-- would float every terminal window.
 -- Bluetooth TUI
-hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(terminal .. " -e bluetuith"))
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(terminal .. " --class=bluetuith -e bluetuith"))
 
 -- WiFi TUI
-hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(terminal .. " -e nmtui"))
+hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(terminal .. " --class=nmtui -e nmtui"))
+
+-- Audio TUI: pick the output/input device, move individual apps between them.
+hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(terminal .. " --class=wiremix -e wiremix"))
 
 -- Notification center toggle
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("swaync-client -t -sw"))
@@ -270,6 +276,15 @@ hl.window_rule({
 hl.window_rule({
     match = { class = "(?i).*kcalc.*" },
     float = true,
+})
+
+-- System TUIs launched from the binds above (Super + A / W / B) and from the
+-- matching waybar modules: transient things you open, change one setting in, and
+-- close, so they float centred instead of re-tiling the workspace behind them.
+hl.window_rule({
+    match = { class = [[^(wiremix|nmtui|bluetuith)$]] },
+    float = true,
+    size  = { 1100, 700 },
 })
 
 hl.window_rule({
