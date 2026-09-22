@@ -287,6 +287,27 @@ hl.window_rule({
     size  = { 1100, 700 },
 })
 
+-- Synology Drive's tray panel. It is a Qt/XWayland popup that destroys itself the
+-- moment it loses focus, and being XWayland it has no idea where its tray icon is,
+-- so it spawns mid-screen, far from the pointer sitting on the waybar tray. With
+-- follow_mouse = 1 the pointer hands focus straight back to whatever is under it and
+-- the panel vanishes before you can click anything -- it just flashes.
+--
+-- stay_focused stops the passive focus-follows-mouse steal, so the panel stays up
+-- until you actually dismiss it: Escape, clicking one of its entries, or clicking
+-- another window (a deliberate focus change still goes through and closes it).
+--
+-- center puts it in the middle of whichever monitor it opens on, so it lands
+-- somewhere predictable at any resolution instead of the arbitrary spot the app
+-- picks. (`move = "onscreen cursor -50% -50%"` was tried first, to spawn it under
+-- the pointer; the panel ignored the cursor entirely, so it is not used.)
+hl.window_rule({
+    match        = { class = [[^(cloud-drive-ui)$]] },
+    float        = true,
+    center       = true,
+    stay_focused = true,
+})
+
 hl.window_rule({
     match = {
         class = [[^(org\.remmina\.Remmina)$]],
