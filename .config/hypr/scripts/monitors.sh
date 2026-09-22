@@ -25,9 +25,14 @@ SCALE_EDP=1.6
 SCALE_UW=1      # 3840x1600 ultrawide
 SCALE_4K=1      # 3840x2160 4K -- bump to 1.5 or 2 if the UI is too small
 
+# This machine, for the host-scoped table keys below. MONITORS_HOST overrides it,
+# which is the only way to test another machine's entries from here.
+THIS_HOST=${MONITORS_HOST:-$(uname -n)}
+
 # Refresh rates verified STABLE, keyed by a substring of the monitor description
-# (run `monitors.sh --list` to see the descriptions). A monitor with no entry here
-# runs at its EDID preferred mode, which is the conservative, always-safe choice.
+# (run `monitors.sh --list` to see the descriptions), optionally scoped to one
+# machine as "hostname:substring". A monitor with no entry here runs at its EDID
+# preferred mode, which is the conservative, always-safe choice.
 #
 # These are empirical and cannot be derived. A mode that is advertised, lights up
 # and looks perfect can still drop the DP link every few minutes; nothing detects
@@ -36,32 +41,68 @@ SCALE_4K=1      # 3840x2160 4K -- bump to 1.5 or 2 if the UI is too small
 #
 # The stable rate belongs to the monitor AND its cable AND its port, not to the
 # monitor alone -- a USB-C display shares one link between pixels, its USB hub and
-# power. Re-verify after changing any of those.
+# power. That is why entries are host-scoped: this repo follows the same monitor
+# onto machines that drive it over plain DisplayPort, where none of that contention
+# exists and the cap would be pure loss. An unscoped key still matches every host.
 declare -A STABLE_MODE=(
-    # LG 38WN95C over USB-C. It advertises 144 and 144 lights up fine, but the
-    # Thunderbolt link negotiates 20 Gb/s (2 lanes x 10), leaving DP 4 lanes of
-    # HBR2 = 17.3 Gb/s of payload, shared with the monitor's USB hub. 144 needs
-    # ~23.4 Gb/s before compression, so it leans hard on DSC and retrains every
-    # few minutes, blanking the screen. 120 is the panel's own preferred mode.
-    # 75 is the fastest mode that needs no compression at all, if 120 still blinks.
-    ["LG HDR WQHD+"]="3840x1600@119.98"
+    # LG 38WN95C over USB-C/Thunderbolt on the Framework 13. It advertises 144 and
+    # 144 lights up fine, but the Thunderbolt link negotiates 20 Gb/s (2 lanes x
+    # 10), leaving DP 4 lanes of HBR2 = 17.3 Gb/s of payload, shared with the
+    # monitor's USB hub. 144 needs ~23.4 Gb/s before compression, so it leans hard
+    # on DSC and retrains every few minutes, blanking the screen. 120 is the panel's
+    # own preferred mode. 75 is the fastest mode that needs no compression at all,
+    # if 120 still blinks.
+    ["framework13:LG HDR WQHD+"]="3840x1600@119.98"
+
+    # The same panel on a desktop over DisplayPort has a link to itself, so the full
+    # 144 should hold. Nothing here raises a monitor above its preferred mode on its
+    # own, so that needs an entry: `--try 3840x1600@144` on that machine, live with
+    # it, then uncomment with the right hostname.
+    # ["NVIDIA-HOSTNAME:LG HDR WQHD+"]="3840x1600@144"
 )
 
 # Per-monitor scale overrides, same key format. Falls back to the SCALE_* defaults.
 declare -A STABLE_SCALE=()
 
+# The value in table $1 whose key matches monitor description $2 on this host.
+# A "host:substring" key only matches on that host and wins over a bare "substring"
+# key, so a machine-specific entry can override a shared one. Returns 1 if nothing
+# matches, so callers can tell "no entry" from "entry that happens to be empty".
+table_lookup() { # table-name desc
+    local -n tbl=$1
+    local desc=$2 key host pat generic="" found=""
+    for key in "${!tbl[@]}"; do
+        host=""; pat=$key
+        case "$key" in *:*) host=${key%%:*}; pat=${key#*:} ;; esac
+        case "$desc" in *"$pat"*)
+            if [ -n "$host" ]; then
+                [ "$host" = "$THIS_HOST" ] && { echo "${tbl[$key]}"; return 0; }
+            else
+                generic=${tbl[$key]}; found=1
+            fi ;;
+        esac
+    done
+    [ -n "$found" ] && { echo "$generic"; return 0; }
+    return 1
+}
+
 mons=$(hyprctl monitors all -j)
 
-# Apply a monitor rule. Hyprland >= 0.55 with a lua config takes `hyprctl eval`
-# (it prints "ok" on success); pre-lua .conf sessions still need `hyprctl keyword`.
+# Apply a monitor rule. A lua config only takes `hyprctl eval`, which prints "ok" on
+# success; `hyprctl keyword` is not a fallback, it refuses outright with "can't work
+# with non-legacy parsers", so a failure here is real and gets printed.
+apply_rule() { # name lua-fields
+    local out
+    out=$(hyprctl eval "hl.monitor({ output = \"$1\", $2 })" 2>&1)
+    [ "$out" = "ok" ] || echo "monitors: $1: $out" >&2
+}
+
 set_monitor() { # name mode position scale
-    hyprctl eval "hl.monitor({ output = \"$1\", mode = \"$2\", position = \"$3\", scale = $4 })" 2>&1 |
-        grep -qx "ok" || hyprctl keyword monitor "$1,$2,$3,$4"
+    apply_rule "$1" "mode = \"$2\", position = \"$3\", scale = $4"
 }
 
 disable_monitor() { # name
-    hyprctl eval "hl.monitor({ output = \"$1\", disabled = true })" 2>&1 |
-        grep -qx "ok" || hyprctl keyword monitor "$1,disable"
+    apply_rule "$1" "disabled = true"
 }
 
 # Undo a previous disable_monitor(). There is no direct way to: hl.monitor() merges
@@ -117,17 +158,13 @@ policy_mode() { # name
     local name=$1 desc key want canon pref nat best
     desc=$(desc_of "$name")
 
-    for key in "${!STABLE_MODE[@]}"; do
-        case "$desc" in *"$key"*)
-            want=${STABLE_MODE[$key]}
-            canon=$(resolve_mode "$name" "$want")
-            if [ -n "$canon" ]; then echo "$canon"; return; fi
-            # A different monitor matched the key, or the entry has a typo. Either
-            # way, refuse to force a mode the hardware never offered.
-            echo "monitors: $name [$desc] does not advertise $want; using preferred" >&2
-            break ;;
-        esac
-    done
+    if want=$(table_lookup STABLE_MODE "$desc"); then
+        canon=$(resolve_mode "$name" "$want")
+        if [ -n "$canon" ]; then echo "$canon"; return; fi
+        # A different monitor matched the key, or the entry has a typo. Either
+        # way, refuse to force a mode the hardware never offered.
+        echo "monitors: $name [$desc] does not advertise $want; using preferred" >&2
+    fi
 
     pref=$(preferred_mode "$name")
     [ -z "$pref" ] && { echo preferred; return; }
@@ -142,11 +179,9 @@ policy_mode() { # name
 
 # Scale for monitor $1, given its chosen mode $2.
 policy_scale() { # name mode
-    local desc key
+    local desc override
     desc=$(desc_of "$1")
-    for key in "${!STABLE_SCALE[@]}"; do
-        case "$desc" in *"$key"*) echo "${STABLE_SCALE[$key]}"; return ;; esac
-    done
+    if override=$(table_lookup STABLE_SCALE "$desc"); then echo "$override"; return; fi
     case "$(res_of "$2")" in
         3840x1600) echo "$SCALE_UW" ;;
         3840x2160) echo "$SCALE_4K" ;;
@@ -215,11 +250,11 @@ done <<< "$externals"
 if [ -n "$chosen_name" ]; then
     mode=$(policy_mode "$chosen_name")
     scale=$(policy_scale "$chosen_name" "$mode")
-    echo "monitors: driving $chosen_name at $mode (scale $scale); laptop panel off"
+    echo "monitors: driving $chosen_name at $mode (scale $scale)${edp:+; laptop panel off}"
     set_monitor "$chosen_name" "$mode" "0x0" "$scale"
     if [ -n "$edp" ]; then disable_monitor "$edp"; fi
 else
-    echo "monitors: no known external; laptop panel on"
+    echo "monitors: no known external${edp:+; laptop panel on}"
     if [ -n "$edp" ]; then
         enable_monitor "$edp"
         set_monitor "$edp" "$(policy_mode "$edp")" "auto" "$SCALE_EDP"
