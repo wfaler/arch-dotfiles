@@ -45,20 +45,30 @@ THIS_HOST=${MONITORS_HOST:-$(uname -n)}
 # onto machines that drive it over plain DisplayPort, where none of that contention
 # exists and the cap would be pure loss. An unscoped key still matches every host.
 declare -A STABLE_MODE=(
-    # LG 38WN95C over USB-C/Thunderbolt on the Framework 13. It advertises 144 and
-    # 144 lights up fine, but the Thunderbolt link negotiates 20 Gb/s (2 lanes x
-    # 10), leaving DP 4 lanes of HBR2 = 17.3 Gb/s of payload, shared with the
-    # monitor's USB hub. 144 needs ~23.4 Gb/s before compression, so it leans hard
-    # on DSC and retrains every few minutes, blanking the screen. 120 is the panel's
-    # own preferred mode. 75 is the fastest mode that needs no compression at all,
-    # if 120 still blinks.
-    ["framework13:LG HDR WQHD+"]="3840x1600@119.98"
+    # LG 38WN95C over USB-C/Thunderbolt on the Framework 13. The link negotiates
+    # 20 Gb/s (2 lanes x 10), leaving DP 4 lanes of HBR2 = 17.3 Gb/s of payload,
+    # shared with the monitor's USB hub and power.
+    #
+    # 144 needs ~23.4 Gb/s before compression: it lights up, then leans hard on DSC
+    # and retrains every few minutes, blanking the screen. 120 (the panel's own
+    # preferred mode) still needs DSC and produced intermittent single-frame
+    # flashes -- no DP link drop, no HPD, nothing in the kernel log at all, which is
+    # exactly what a DSC hiccup looks like from the source side.
+    #
+    # 75 is the fastest mode that needs no compression whatsoever. That is the trade
+    # taken here: this machine is not used for anything that needs high refresh.
+    ["framework13:LG HDR WQHD+"]="3840x1600@74.98"
 
-    # The same panel on a desktop over DisplayPort has a link to itself, so the full
-    # 144 should hold. Nothing here raises a monitor above its preferred mode on its
-    # own, so that needs an entry: `--try 3840x1600@144` on that machine, live with
-    # it, then uncomment with the right hostname.
-    # ["NVIDIA-HOSTNAME:LG HDR WQHD+"]="3840x1600@144"
+    # The same panel on the Nvidia desktop over native DisplayPort: no Thunderbolt
+    # tunnel, no shared USB hub, so DP 1.4 (4 lanes x 8.1 = ~25.9 Gb/s of payload)
+    # carries 144 (~23.4 Gb/s) without compression. An entry is needed because the
+    # panel's EDID asks for 120 and nothing here raises a monitor above what it asks
+    # for on its own.
+    #
+    # Not yet verified on that machine -- `--try DP-x 3840x1600@144`, live with it a
+    # day, drop to 119.98 if it blinks. If the hostname is wrong the entry is simply
+    # inert (check with `uname -n`) and the panel falls back to its preferred 120.
+    ["raptor:LG HDR WQHD+"]="3840x1600@144"
 )
 
 # Per-monitor scale overrides, same key format. Falls back to the SCALE_* defaults.
