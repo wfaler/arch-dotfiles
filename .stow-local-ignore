@@ -10,6 +10,7 @@
 ^/install\.sh$
 ^/SAVEGAME\.md$
 ^/docker_to_podman\.sh$
+^/xdg-defaults\.sh$
 ^/hyprland\.md$
 ^/VIM\.md$
 ^/README\.md$

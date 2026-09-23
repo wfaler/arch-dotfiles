@@ -37,11 +37,11 @@
         "separate-outputs": true
     },
 
-    // Rofi Application Launcher
+    // Application launcher (same wofi invocation as Super + D)
     "custom/appmenu": {
         "format": "Apps",
         "tooltip-format": "Left: Open the application launcher\nRight: Show all keybindings",
-        "on-click": "wofi -show drun",
+        "on-click": "wofi --show drun",
         "on-click-right": "~/.config/ml4w/scripts/keybindings.sh",
         "tooltip": false
     },

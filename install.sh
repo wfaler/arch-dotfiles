@@ -75,7 +75,7 @@ packages=(
     slurp
     socat
     ## VARIOUS CLIENT APPS
-    slack-desktop-wayland
+    slack-desktop
     spotify
     synology-drive
     claude-code
@@ -307,28 +307,12 @@ EOF
     fi
 } > "$hardware_lua"
 
-# Default application handlers. xdg-mime rewrites mimeapps.list on every call --
-# only call it when the value actually differs.
-declare -A xdg_defaults=(
-    [x-scheme-handler/http]=firefox.desktop
-    [x-scheme-handler/https]=firefox.desktop
-    [text/html]=firefox.desktop
-    [application/pdf]=org.kde.okular.desktop
-    [image/jpeg]=org.kde.gwenview.desktop
-    [image/png]=org.kde.gwenview.desktop
-    [image/webp]=org.kde.gwenview.desktop
-    [image/gif]=org.kde.gwenview.desktop
-    [application/x-synology-drive-doc]=synology-drive-open-file.desktop
-    [application/x-synology-drive-sheet]=synology-drive-open-file.desktop
-    [application/x-synology-drive-slides]=synology-drive-open-file.desktop
-)
-for mime in "${!xdg_defaults[@]}"; do
-    desktop="${xdg_defaults[$mime]}"
-    if [ "$(xdg-mime query default "$mime" 2>/dev/null)" != "$desktop" ]; then
-        echo "Setting $mime default to $desktop..."
-        xdg-mime default "$desktop" "$mime"
-    fi
-done
+# Default application handlers. Lives in its own script so drift can be fixed
+# without a full install run -- apps that claim a mime type rewrite mimeapps.list
+# behind your back (see the comments in xdg-defaults.sh).
+if [ -x "$script_dir/xdg-defaults.sh" ]; then
+    "$script_dir/xdg-defaults.sh"
+fi
 
 # Trigger user XDG autostart now so first-install brings up 1Password / Synology Drive
 # without requiring a logout. Subsequent logins go through hyprland's exec-once.

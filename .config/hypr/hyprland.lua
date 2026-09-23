@@ -188,6 +188,21 @@ hl.device({
 })
 
 
+------------------
+---- GESTURES ----
+------------------
+
+-- Four fingers sideways on the touchpad = move between workspaces, following the
+-- swipe live rather than jumping at the end. Three fingers is left free, since
+-- that is what most apps use for their own back/forward gestures.
+-- See https://wiki.hypr.land/Configuring/Gestures/
+hl.gesture({
+    fingers   = 4,
+    direction = "horizontal",
+    action    = "workspace",
+})
+
+
 ---------------------
 ---- KEYBINDINGS ----
 ---------------------
@@ -301,10 +316,18 @@ hl.window_rule({
 -- somewhere predictable at any resolution instead of the arbitrary spot the app
 -- picks. (`move = "onscreen cursor -50% -50%"` was tried first, to spawn it under
 -- the pointer; the panel ignored the cursor entirely, so it is not used.)
+-- Match the panel only, by title. Every window this app opens shares the class
+-- cloud-drive-ui -- main window, dialogs and all -- but only the tray panel is
+-- titled after the binary. Matching on class alone pins focus on several windows
+-- at once, and they fight: open Settings, click anything in it, and the focus
+-- ping-pong closes the dialog under you.
+-- center is deliberately NOT set here: moving the panel after it maps desyncs the
+-- app's idea of where it is, and its own context menus then hit-test against the
+-- old origin -- items highlight and click at an offset from the pointer. Letting
+-- the app place the panel keeps its menus aligned.
 hl.window_rule({
-    match        = { class = [[^(cloud-drive-ui)$]] },
+    match        = { class = [[^(cloud-drive-ui)$]], title = [[^(cloud-drive-ui)$]] },
     float        = true,
-    center       = true,
     stay_focused = true,
 })
 
