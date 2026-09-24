@@ -248,13 +248,20 @@ esac
 # Internal panel name (eDP*); empty string on the desktop.
 edp=$(echo "$mons" | jq -r '[.[] | select(.name|startswith("eDP")) | .name] | first // empty')
 
-# Walk external monitors; pick the first that advertises a known resolution.
+# Walk external monitors; pick the first that is one of the known big screens.
+#
+# Match on the resolution the monitor ASKS for as well as the largest it advertises.
+# Neither alone is enough: one LG ultrawide here lists a bogus 4096x2160@100 mode, so
+# the largest-advertised test missed a perfectly ordinary 3840x1600 panel and left the
+# laptop screen on; while a monitor whose preferred mode is below its native res (a 4K
+# that asks for 1080p) needs the largest-advertised test to be recognised at all.
 chosen_name=""
 externals=$(echo "$mons" | jq -r '.[] | select(.name|startswith("eDP")|not) | .name')
 while read -r name; do
     [ -z "$name" ] && continue
-    nat=$(native_res "$name")
-    if [ "$nat" = "3840x1600" ] || [ "$nat" = "3840x2160" ]; then chosen_name=$name; break; fi
+    for res in "$(res_of "$(preferred_mode "$name")")" "$(native_res "$name")"; do
+        case "$res" in 3840x1600|3840x2160) chosen_name=$name; break 2 ;; esac
+    done
 done <<< "$externals"
 
 if [ -n "$chosen_name" ]; then
