@@ -129,7 +129,11 @@ esac
 gpu_info=$(lspci 2>/dev/null | grep -iE 'vga|3d|display')
 echo "$gpu_info" | grep -qiE 'amd|ati|advanced micro' && packages+=(vulkan-radeon libva-mesa-driver)
 echo "$gpu_info" | grep -qi  intel                    && packages+=(vulkan-intel intel-media-driver)
-echo "$gpu_info" | grep -qi  nvidia                   && packages+=(nvidia-dkms nvidia-utils libva-nvidia-driver)
+if echo "$gpu_info" | grep -qi nvidia; then
+    packages+=(nvidia-utils libva-nvidia-driver)
+    # Kernel module: skip if one is already installed (e.g. CachyOS prebuilt linux-cachyos-nvidia-open)
+    pacman -Qq NVIDIA-MODULE &>/dev/null || packages+=(nvidia-open-dkms)
+fi
 
 # Laptop detection: a battery under /sys/class/power_supply means this is a laptop
 # (same signal hypridle uses for its on-battery listeners). Append power-management
