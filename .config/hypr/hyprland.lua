@@ -145,6 +145,24 @@ hl.config({
         mouse_move_enables_dpms = true,
         key_press_enables_dpms  = true,
     },
+
+    render = {
+        -- Hand a fullscreen window's buffer straight to the display, skipping a
+        -- composite pass: lower latency and less GPU work for games, and one fewer
+        -- frame in the path when VRR is driving the refresh. KWin unredirects
+        -- fullscreen windows by itself; Hyprland makes you ask. Without this,
+        -- `hyprctl monitors` reports "directScanoutBlockedBy: user settings".
+        -- 2 = auto, which lets Hyprland decide when it is safe, rather than 1 = always.
+        direct_scanout = 2,
+
+        -- Do NOT raise this to 1 (hdr) or 2 (hdredid) while the output is 8-bit.
+        -- The default of 1 auto-switches the monitor into HDR whenever a fullscreen
+        -- app declares HDR, and on the LG 38WN95C that raises an on-screen warning
+        -- about wide colour gamut with no 10-bit colour -- observed, not guessed.
+        -- 10-bit on that panel costs 24 Hz, so it needs a whole session mode: the
+        -- design and the measurements live in scripts/monitors.sh under the HDR block.
+        cm_auto_hdr = 0,
+    },
 })
 
 -- See https://wiki.hypr.land/Configuring/Advanced-and-Cool/Animations/

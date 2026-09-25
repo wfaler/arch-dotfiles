@@ -10,6 +10,12 @@
 # preferred mode), unless STABLE_MODE below says otherwise. Do NOT go back to
 # picking the highest advertised refresh -- see the comment on STABLE_MODE.
 #
+# VRR policy: off unless STABLE_VRR below says otherwise. VRR is a global setting
+# in Hyprland, not a per-monitor one -- see the comment on apply_vrr().
+#
+# HDR policy: none, deliberately. It needs a whole session mode (10-bit costs 24 Hz
+# on this link) -- the design and the measurements are in the HDR block below.
+#
 # Usage:
 #   monitors.sh                     apply the layout (default; called on hotplug)
 #   monitors.sh --list              show each monitor's description and modes
@@ -74,6 +80,184 @@ declare -A STABLE_MODE=(
 # Per-monitor scale overrides, same key format. Falls back to the SCALE_* defaults.
 declare -A STABLE_SCALE=()
 
+# VRR (adaptive sync) per monitor, same key format again. Values are Hyprland's:
+#   0  off -- the default for any monitor with no entry here
+#   1  always on, desktop included
+#   2  only while a window is fullscreen
+#   3  only for fullscreen windows that declare content type "game"
+#
+# Keyed per monitor for the same reason as STABLE_MODE -- whether a panel flickers
+# under VRR is a property of that panel -- but only the value for the monitor actually
+# being driven gets applied, because Hyprland has no per-monitor VRR (see apply_vrr).
+#
+# 2 rather than 3 for the LG on raptor: 3 keys off the wp_content_type_v1 hint, which
+# mpv reports as "video" and not "game" during playback (--wayland-content-type
+# defaults to auto), and which XWayland cannot set at all -- so Proton titles launched
+# outside gamescope would never trigger it. 2 keys off the fullscreen state alone, so it
+# covers games and fullscreen video alike, XWayland included.
+#
+# Verified capable on raptor, both ends: the panel's EDID carries an AMD FreeSync block
+# (OUI 00-00-1A) advertising 48-144 Hz, and aquamarine logs "connector DP-1 crtc is
+# capable of vrr" against the Nvidia driver. 24 fps film therefore lands exactly on the
+# 48 Hz floor (each frame shown twice) and 25/30 fps on 50/60 -- the cases fixed-refresh
+# handles worst. What to watch for is brightness shift on a STATIC fullscreen window,
+# where the refresh sinks to the floor with no new frames arriving: that is where a VRR
+# panel flickers if it is going to. Drop this to 3 (or 0) if it does.
+declare -A STABLE_VRR=(
+    ["raptor:LG HDR WQHD+"]=2
+)
+
+###############################################################################
+#### HDR -- NOT IMPLEMENTED. DESIGN NOTES SO IT CAN BE BUILT LATER.
+###############################################################################
+#
+# Everything here was measured on raptor on 2026-09-25. It is written down so the
+# investigation does not have to be repeated; none of it is in effect.
+#
+# --- The one thing that is actively wrong today -------------------------------
+#
+# render:cm_auto_hdr defaults to 1 ("auto-switch to hdr mode when fullscreen app is
+# in hdr") while bitdepth defaults to 8. On the LG 38WN95C that pairing makes the
+# panel raise an on-screen warning about wide colour gamut with no 10-bit colour
+# -- observed directly, not inferred. So fullscreening an HDR video right now hands
+# the monitor BT.2020 primaries over an 8-bit link and it complains.
+#
+#   hl.config({ render = { cm_auto_hdr = 0 } })
+#
+# turns that off. It only wants to be 1 (hdr) or 2 (hdredid) inside a session that
+# is actually running 10-bit, which is what the rest of this note is about. Left
+# alone for now on purpose -- it is a one-liner whenever it starts to annoy.
+#
+# --- Why HDR needs a mode switch, not just a colour setting -------------------
+#
+# HDR on this panel requires 10 bits per channel: 8-bit HDR bands visibly, and
+# raises the warning above. Hyprland *can* change colour mode per fullscreen app --
+# `cm` is what render:cm_auto_hdr flips, and it logs "[CM] Auto HDR: changing
+# monitor cm to {}" when it does -- but `bitdepth` is a persistent monitor property
+# and cannot follow a window's fullscreen state. Verified: cm = "hdr" with
+# bitdepth = 8 stays at XRGB8888; only an explicit bitdepth = 10 gives XBGR2101010.
+#
+# And 10-bit is 25% more bandwidth than 8, which this link cannot absorb at full
+# refresh. Measured against DP 1.4 (4 lanes x 8.1 Gb/s x 8b/10b = 25.92 Gb/s of
+# payload), htotal 4000 and vtotal 1694 taken from the EDID DisplayID block:
+#
+#     3840x1600@144   8bpc   975.7 MHz   23.42 Gb/s    90%  <- current, fits
+#     3840x1600@144  10bpc   975.7 MHz   29.27 Gb/s   113%  <- would force DSC
+#     3840x1600@120  10bpc   813.1 MHz   24.39 Gb/s    94%  <- fits, no DSC
+#
+# The 8bpc row reproduces the ~23.4 Gb/s already quoted in STABLE_MODE above, which
+# is the check that this arithmetic is sound. So on raptor it is 144 Hz or HDR, and
+# the switch costs 24 Hz. 120 at 10bpc is the fastest mode that needs no compression.
+#
+# --- Why it is keyed per host and monitor, like every other table here --------
+#
+# For the same reason STABLE_MODE is: the budget belongs to the monitor AND its
+# cable AND its port. This same panel over the Framework's Thunderbolt tunnel has
+# 17.3 Gb/s shared with the hub and power, where 10-bit would not reach even 75 Hz.
+# Note the keys cover connection only implicitly -- one port per host for this panel
+# -- so moving the LG to a USB-C port on raptor would match a key promising a mode
+# the link cannot carry. Acceptable: it fails by not lighting up, same as any other
+# bad STABLE_MODE entry.
+#
+# --- The design ---------------------------------------------------------------
+#
+# A table of the mode to use when HDR is on. No entry means HDR is unavailable for
+# that monitor on that host, and `--hdr on` refuses rather than guessing:
+#
+#     declare -A HDR_MODE=( ["raptor:LG HDR WQHD+"]="3840x1600@120" )
+#
+# resolve_mode()'s +-0.5 Hz tolerance already maps @120 onto the advertised 119.98.
+#
+# Two session states, switched as a whole:
+#
+#     desktop:  STABLE_MODE   bitdepth 8    cm srgb   cm_auto_hdr 0
+#     hdr:      HDR_MODE      bitdepth 10   cm srgb   cm_auto_hdr 2
+#
+# `cm` stays srgb in both. In the hdr state the desktop is plain 10-bit sRGB -- no
+# wide-gamut signalling, so no warning -- and auto-HDR flips cm to hdredid only
+# while a fullscreen HDR app is up. That is the point of the whole arrangement:
+# HDR for fullscreen content that asks for it, never for the desktop. hdredid
+# rather than hdr so tone mapping uses this panel's own EDID luminance (603 cd/m^2
+# peak, 0.101 min) instead of generic metadata.
+#
+# Pieces to add:
+#   - state in $XDG_RUNTIME_DIR/monitors-hdr. It must persist across invocations,
+#     because this script re-runs on every hotplug -- otherwise a monitor event
+#     mid-game silently drops back to the desktop mode. Runtime scope means every
+#     login starts in desktop mode, which is the right default while HDR costs
+#     refresh; move it under ~/.local/state to make it survive reboots.
+#   - policy_mode(): consult HDR_MODE first when the state says on, else unchanged.
+#   - policy_bitdepth(): 10 when on, 8 otherwise.
+#   - apply_cm_auto_hdr(): global, via hl.config, exactly like apply_vrr().
+#   - set_monitor(): gains a bitdepth argument. Happy accident -- a bitdepth change
+#     forces the output re-commit that a per-monitor `vrr` rule would need, so
+#     nothing gets stranded there.
+#   - `--hdr on|off|toggle`: record the state, then re-run the layout, so the HDR
+#     path and the hotplug path stay the same code. `--list` grows a line showing
+#     the state, the mode each way, and the live cm/format.
+#
+# --- Still unverified ---------------------------------------------------------
+#
+#   - that 3840x1600@120 at 10bpc is stable on this link (94% utilisation). Run it
+#     through --try and live with it a day before it goes in HDR_MODE, same rule as
+#     every refresh rate here.
+#   - that the 10-bit sRGB desktop really is warning-free. Needs eyes on the screen.
+#   - auto-HDR only fires for clients that declare HDR over wp_color_management_v1.
+#     XWayland cannot, so Proton titles will not trigger it; that needs gamescope,
+#     which is not installed. Expect this to work for native Wayland clients (mpv
+#     with vo=gpu-next, native Wayland games) and nothing else.
+#
+# --- Decision, 2026-09-25: deferred, not merely unbuilt ----------------------
+#
+# HDR for GAMES is not reachable from here regardless of what this script does, so
+# the session mode above would buy 24 Hz worth of nothing for that use case. Proton
+# titles run on XWayland, which cannot declare HDR over wp_color_management_v1, so
+# Hyprland's auto-HDR never fires for them. The only route is gamescope, and on
+# Nvidia gamescope's HDR path has a poor record:
+#
+#   - Nvidia's own tracker carries a long-standing report that display modes above
+#     2560x1440@120 with HDR enabled flicker and corrupt inside gamescope-session,
+#     reproduced on Arch and Fedora, nested and embedded, still seen on 5090-class
+#     cards. Our HDR target (3840x1600@120) is above that threshold, and "flicker at
+#     high resolution" is indistinguishable by eye from the DSC retraining this file
+#     already fights. https://forums.developer.nvidia.com/t/295314
+#   - gamescope's HDR path breaks often and not only on Nvidia: 3.16.17 broke it on
+#     Fedora/GNOME (gamescope#2018) and on Arch/Plasma (gamescope#2037); washed-out
+#     and yellow-cast HDR reports recur (gamescope#2000, #1827, #1404).
+#   - Hyprland is the least-tested host for it. Nested-mode VRR is described as fine
+#     on KDE and Sway while Hyprland lags (hyprwm/Hyprland discussion #11406).
+#
+# One caveat on that reading: the frequently cited claim that Nvidia's Wayland ICD
+# lacks VK_EXT_swapchain_colorspace does NOT hold on 610.57.04 -- it is advertised
+# at revision 5 (see the check below). Those reports predate this driver. So the
+# gaming situation is better described as untested on current drivers with a bad
+# history, rather than known broken. Either way it is an evening of work plus 24 Hz
+# to find out, which is why this is parked rather than attempted.
+#
+# Revisit in ~6 months (so, from 2027-03) and check these in order, cheapest first:
+#
+#   1. vulkaninfo | grep VK_EXT_swapchain_colorspace
+#      Present at rev 5 on 610.57.04 already -- recorded so nobody re-cites the
+#      stale "Nvidia lacks it" claim as a reason not to try.
+#   2. Is the Nvidia flicker/corruption thread above resolved? That is the bug that
+#      would actually bite at 3840x1600@120, and it is the deciding one.
+#   3. Any report of gamescope HDR working on Hyprland + Nvidia specifically. Absent
+#      that, assume it does not.
+#
+# And note the VIDEO path does not depend on any of this. mpv with vo=gpu-next is a
+# native Wayland client that can declare HDR, so the session mode above would work
+# for HDR films today at the documented 24 Hz cost, with no gamescope in the picture.
+# If HDR ever becomes worth building here, that is the case to build it for.
+#
+# --- Poking at it by hand (all of it undone by `hyprctl reload`) --------------
+#
+#   hyprctl eval 'hl.monitor({ output = "DP-1", cm = "hdredid", bitdepth = 10 })'
+#   hyprctl eval 'hl.config({ render = { cm_auto_hdr = 2 } })'
+#   hyprctl monitors -j | jq -r '.[0]|"\(.colorManagementPreset) \(.currentFormat)"'
+#   edid-decode /sys/class/drm/card1-DP-1/edid   # AMD FreeSync + HDR static metadata
+#
+###############################################################################
+
 # The value in table $1 whose key matches monitor description $2 on this host.
 # A "host:substring" key only matches on that host and wins over a bare "substring"
 # key, so a machine-specific entry can override a shared one. Returns 1 if nothing
@@ -105,6 +289,23 @@ apply_rule() { # name lua-fields
     local out
     out=$(hyprctl eval "hl.monitor({ output = \"$1\", $2 })" 2>&1)
     [ "$out" = "ok" ] || echo "monitors: $1: $out" >&2
+}
+
+# Set Hyprland's VRR mode via the global misc:vrr rather than the per-monitor `vrr`
+# field that hl.monitor() also accepts. That field does work, but only from the next
+# time the output is actually re-committed -- setting it alone changes nothing, and
+# setting it alongside a mode that is already current changes nothing either, because
+# there is no commit. It applied immediately once a real format change (bitdepth 8->10)
+# forced one. That makes it useless here: this script runs on every hotplug, usually
+# with the mode already correct, so a per-monitor rule would silently not apply.
+# misc:vrr takes effect the moment it is set. So the value belonging to the monitor
+# being driven is applied globally instead. That is exact rather than approximate in this layout: an external
+# display turns the laptop panel off, so there is only ever one active monitor here.
+# If that stops being true, VRR follows the primary panel and the others inherit it.
+apply_vrr() { # value
+    local out
+    out=$(hyprctl eval "hl.config({ misc = { vrr = $1 } })" 2>&1)
+    [ "$out" = "ok" ] || echo "monitors: vrr: $out" >&2
 }
 
 set_monitor() { # name mode position scale
@@ -199,6 +400,15 @@ policy_scale() { # name mode
     esac
 }
 
+# VRR mode for monitor $1. Off unless STABLE_VRR has an entry, so this stays inert on
+# every monitor that has not been watched for flicker.
+policy_vrr() { # name
+    local desc override
+    desc=$(desc_of "$1")
+    if override=$(table_lookup STABLE_VRR "$desc"); then echo "$override"; return; fi
+    echo 0
+}
+
 ##############
 #### MODES ###
 ##############
@@ -214,6 +424,10 @@ case "${1:-}" in
             "$(echo "$mons" | jq -r --arg n "$name" '.[]|select(.name==$n)|"\(.width)x\(.height)@\(.refreshRate*100|round/100)"')"
         printf '  preferred: %s\n' "$(preferred_mode "$name")"
         printf '  policy:    %s\n' "$(policy_mode "$name" 2>/dev/null)"
+        printf '  vrr:       policy %s (misc:vrr now %s, engaged right now: %s)\n' \
+            "$(policy_vrr "$name")" \
+            "$(hyprctl getoption misc:vrr -j 2>/dev/null | jq -r '.int // "?"')" \
+            "$(echo "$mons" | jq -r --arg n "$name" '.[]|select(.name==$n)|.vrr')"
         printf '  available: %s\n\n' "$(modes_of "$name" | paste -sd, - | sed 's/,/, /g')"
     done <<< "$(echo "$mons" | jq -r '.[].name')"
     exit 0
@@ -267,8 +481,10 @@ done <<< "$externals"
 if [ -n "$chosen_name" ]; then
     mode=$(policy_mode "$chosen_name")
     scale=$(policy_scale "$chosen_name" "$mode")
-    echo "monitors: driving $chosen_name at $mode (scale $scale)${edp:+; laptop panel off}"
+    vrr=$(policy_vrr "$chosen_name")
+    echo "monitors: driving $chosen_name at $mode (scale $scale, vrr $vrr)${edp:+; laptop panel off}"
     set_monitor "$chosen_name" "$mode" "0x0" "$scale"
+    apply_vrr "$vrr"
     if [ -n "$edp" ]; then disable_monitor "$edp"; fi
 else
     echo "monitors: no known external${edp:+; laptop panel on}"
@@ -281,6 +497,10 @@ else
         mode=$(policy_mode "$name")
         set_monitor "$name" "$mode" "auto" "$(policy_scale "$name" "$mode")"
     done <<< "$externals"
+    # VRR follows the primary panel: the laptop screen when it is in use, else the
+    # first external. Unknown externals land here, and they are all off by default.
+    primary=${edp:-$(echo "$externals" | head -1)}
+    [ -n "$primary" ] && apply_vrr "$(policy_vrr "$primary")"
 fi
 
 # Audio follows the display: the monitor's own output when one is attached, the
