@@ -356,3 +356,24 @@ hl.window_rule({
     },
     float = true,
 })
+
+-- Steam games (Proton titles all get class steam_app_<appid>) open fullscreen
+-- instead of tiled. Games in "borderless windowed" mode ask for a maximized,
+-- monitor-sized window, and suppress-maximize-events above drops that request, so
+-- without this they tile like any other window: gaps, borders and waybar showing.
+hl.window_rule({
+    name       = "steam-games-fullscreen",
+    match      = { class = [[^steam_app_[0-9]+$]] },
+    fullscreen = true,
+})
+
+-- The rule above only fires when the window opens. Focusing another window on the
+-- same workspace drops the game out of fullscreen (misc.on_focus_under_fullscreen
+-- = 2, the default), and nothing puts it back. So re-fullscreen a Steam game
+-- whenever it regains focus.
+hl.on("window.active", function()
+    local w = hl.get_active_window()
+    if w and w.class:match("^steam_app_%d+$") and w.fullscreen == 0 then
+        hl.dispatch(hl.dsp.window.fullscreen({ mode = "fullscreen", action = "set" }))
+    end
+end)
