@@ -269,7 +269,10 @@ fi
 stow .
 
 # Deploy system-level configs (root-owned, mirrors paths under system/).
-# Currently: logind drop-in for lid-close behavior. No-op on desktops.
+# Currently: logind drop-in for lid-close behavior, and lid-aware fingerprint
+# PAM config for sudo/polkit (falls back to password on desktops / lid closed).
+# Sorted so etc/pam.d/fprint-conditional is installed before etc/pam.d/sudo
+# includes it. Executable sources keep 755.
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -d "$script_dir/system" ]; then
     while IFS= read -r -d '' src; do
@@ -277,12 +280,13 @@ if [ -d "$script_dir/system" ]; then
         dest="/$rel"
         if ! sudo cmp -s "$src" "$dest" 2>/dev/null; then
             echo "Installing $dest..."
-            sudo install -D -m 644 "$src" "$dest"
+            mode=644; [ -x "$src" ] && mode=755
+            sudo install -D -m "$mode" "$src" "$dest"
             case "$dest" in
                 /etc/systemd/logind.conf.d/*) logind_changed=1 ;;
             esac
         fi
-    done < <(find "$script_dir/system" -type f -print0)
+    done < <(find "$script_dir/system" -type f -print0 | sort -z)
     if [ "${logind_changed:-0}" = "1" ]; then
         echo "logind config changed -- reboot or run 'sudo systemctl restart systemd-logind' to apply (this ends the session)."
     fi

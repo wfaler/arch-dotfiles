@@ -1,0 +1,10 @@
+#!/bin/sh
+# PAM gate for fingerprint auth (see /etc/pam.d/fprint-conditional).
+# Exits 0 only if a laptop lid exists and is open. Lid closed (docked) or no
+# lid at all (desktop) -> exit 1, so PAM skips pam_fprintd and asks for the
+# password straight away.
+for f in /proc/acpi/button/lid/*/state; do
+    [ -r "$f" ] || exit 1
+    grep -q open "$f" && exit 0
+done
+exit 1

@@ -1,0 +1,7 @@
+#%PAM-1.0
+# Overrides /usr/lib/pam.d/polkit-1 to add lid-aware fingerprint auth.
+auth       include      fprint-conditional
+auth       include      system-auth
+account    include      system-auth
+password   include      system-auth
+session    include      system-auth

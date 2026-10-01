@@ -1,0 +1,8 @@
+#%PAM-1.0
+# Fingerprint auth, but only when the laptop lid is open.
+# If fprint-available fails (lid closed, no lid, script missing), skip the next
+# line and fall through to the including service's password stack.
+# The leading '-' on pam_fprintd ignores the module if fprintd isn't installed
+# (desktop). pam_fprintd itself passes through when no reader/no enrolled prints.
+auth    [success=ignore default=1]  pam_exec.so quiet /usr/local/bin/fprint-available
+-auth   sufficient                  pam_fprintd.so
