@@ -43,6 +43,7 @@ packages=(
     wireguard-tools
     pipewire
     wireplumber
+    cameractrls
     cargo-nextest
     gnupg
     cloc
@@ -266,7 +267,16 @@ if [ -n "$fish_path" ]; then
     fi
 fi
 
+# Pre-create so stow links unit files individually instead of folding
+# ~/.config/systemd into a repo symlink (enable would then write .wants/ into the repo).
+mkdir -p "$HOME/.config/systemd/user"
+
 stow .
+
+# Restores the webcam presets in ~/.config/hu.irl.cameractrls on device connect.
+# Use enable, never reenable/disable: disable deletes the stowed unit symlink.
+systemctl --user daemon-reload
+systemctl --user enable --now cameractrlsd.service
 
 # Deploy system-level configs (root-owned, mirrors paths under system/).
 # Currently: logind drop-in for lid-close behavior, and lid-aware fingerprint

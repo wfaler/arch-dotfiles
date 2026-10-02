@@ -13,6 +13,7 @@
 ^/xdg-defaults\.sh$
 ^/hyprland\.md$
 ^/VIM\.md$
+^/CAMERA\.md$
 ^/README\.md$
 
 # --- re-included stow defaults ---
