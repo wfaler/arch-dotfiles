@@ -30,6 +30,7 @@ return {
         "tsx",
         "json",
         "vue",
+        "svelte",
         -- low level
         "c",
         "rust",

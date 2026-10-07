@@ -144,6 +144,9 @@ hl.config({
         disable_hyprland_logo   = true, -- no random hyprland logo overlay
         mouse_move_enables_dpms = true,
         key_press_enables_dpms  = true,
+        -- Follow windows that ask for focus, e.g. Firefox when a link is opened
+        -- from another app: switch to its workspace instead of just marking it urgent.
+        focus_on_activate       = true,
     },
 
     render = {

@@ -78,20 +78,36 @@ local function find_plugin_in_node_modules(plugin_name)
   return plugin_path
 end
 
+-- Prefer the project's typescript-svelte-plugin, fall back to the one bundled
+-- with Mason's svelte-language-server. Lets .ts/.js files understand .svelte imports.
+local svelte_ts_plugin = find_plugin_in_node_modules "typescript-svelte-plugin"
+  or vim.fn.stdpath "data" .. "/mason/packages/svelte-language-server/node_modules/typescript-svelte-plugin"
+
+-- Only pass plugins that exist: an entry without a location makes ts_ls fail to initialize.
+local ts_plugins = {}
+local vue_ts_plugin = find_plugin_in_node_modules "@vue/typescript-plugin"
+if vue_ts_plugin then
+  table.insert(ts_plugins, { name = "@vue/typescript-plugin", location = vue_ts_plugin, languages = { "vue" } })
+end
+if vim.uv.fs_stat(svelte_ts_plugin) then
+  table.insert(ts_plugins, { name = "typescript-svelte-plugin", location = svelte_ts_plugin, languages = { "svelte" } })
+end
+
 vim.lsp.config("ts_ls", {
   on_attach = on_attach,
   on_init = on_init,
   capabilities = capabilities,
   init_options = {
-    plugins = {
-      {
-        name = "@vue/typescript-plugin",
-        location = find_plugin_in_node_modules "@vue/typescript-plugin",
-        languages = { "vue" },
-      },
-    },
+    plugins = ts_plugins,
   },
-  filetypes = { "typescript", "typescriptreact", "vue" },
+  filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "vue" },
+})
+
+-- svelte: handles both <script> and <script lang="ts"> inside .svelte files
+vim.lsp.config("svelte", {
+  on_attach = on_attach,
+  on_init = on_init,
+  capabilities = capabilities,
 })
 
 vim.lsp.config("metals", {
@@ -125,6 +141,7 @@ vim.lsp.enable({
   "terraformls",
   "tflint",
   "ts_ls",
+  "svelte",
   "metals",
   "html",
   "templ",
