@@ -21,6 +21,7 @@ Current presets:
 | Camera | File | Settings |
 |---|---|---|
 | Logitech BRIO | `usb-046d_Logitech_BRIO_639E2A1F-video-index0.ini` | brightness 111, sharpness 231 |
+| Logitech C922 Pro Stream | `usb-046d_C922_Pro_Stream_Webcam_C6C9E0BF-video-index0.ini` | brightness 130, sharpness 231 |
 | Framework Laptop Webcam (2nd Gen) | `usb-Framework_Laptop_Webcam_Module__2nd_Gen__FRANJBCHA1551503GH-video-index0.ini` | brightness 85, sharpness 7 (max) |
 
 `~/.config/hu.irl.cameractrls` is a stow symlink into the repo, so presets saved from the GUI land in the repo and show up in `git diff`.
