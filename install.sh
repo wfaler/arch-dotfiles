@@ -99,6 +99,7 @@ packages=(
     fisher
     libreoffice-fresh
     remmina
+    avahi-gtk  # remmina needs libavahi-ui-gtk3, split out of avahi in 0.9
     freerdp
     vlc
     ffmpeg
