@@ -14,15 +14,25 @@
         "on-click": "activate",
         "active-only": false,
         "all-outputs": true,
-        "format": "{}",
+        // Workspace number followed by one icon per window on it (Symbols Nerd Font).
+        "format": "{name} {windows}",
+        "window-rewrite-default": "",
+        "window-rewrite": {
+            "class<firefox>": "󰈹",
+            "class<google-chrome>": "󰊯",
+            "class<slack>": "󰒱",
+            "class<discord>": "󰙯",
+            "class<kitty>": "󰆍",
+            "class<codium>": "󰨞",
+            "class<todoist>": "󰗠"
+        },
         "format-icons": {
 			"urgent": "",
 			"active": "",
 			"default": ""
-        },
-        "persistent-workspaces": {
-             "*": 5
-        }       
+        }
+        // No persistent-workspaces: only workspaces with windows (plus the active
+        // one, even if empty) are shown.
     },
 
     // Hyprland Window

@@ -61,6 +61,8 @@ hl.on("hyprland.start", function()
     -- Dynamic monitor layout (Framework 13 / desktop / external displays) + hotplug watcher.
     hl.exec_cmd("~/.config/hypr/scripts/monitors.sh")
     hl.exec_cmd("~/.config/hypr/scripts/monitor-watch.sh")
+    -- Keep a size-capped copy of this session's log on disk (~/.local/state/hypr).
+    hl.exec_cmd("~/.config/hypr/scripts/log-persist.sh")
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
     -- Process user XDG autostart entries (1Password, Synology Drive, etc.).
@@ -197,6 +199,9 @@ hl.config({
 
         touchpad = {
             natural_scroll = false,
+            -- Physical press by finger count (1/2/3 = left/right/middle), matching taps,
+            -- instead of by where on the pad you press.
+            clickfinger_behavior = true,
         },
     },
 })
