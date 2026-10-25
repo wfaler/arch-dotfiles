@@ -4,6 +4,7 @@
 #
 #   external 3840x1600 (ultrawide) -> drive it, laptop panel OFF
 #   external 3840x2160 (4K)        -> drive it, laptop panel OFF
+#   several of the above           -> drive all, left to right per EXTERNAL_ORDER
 #   no external, or unknown-res external -> laptop panel ON (extend the unknown one)
 #
 # Refresh rate policy: every monitor runs at the mode it asks for (its EDID
@@ -75,10 +76,50 @@ declare -A STABLE_MODE=(
     # day, drop to 119.98 if it blinks. If the hostname is wrong the entry is simply
     # inert (check with `uname -n`) and the panel falls back to its preferred 120.
     ["raptor:LG HDR WQHD+"]="3840x1600@144"
+
+    # Dell G3223Q (32" 4K, 48-144 Hz panel, DSC 1.2a; no speakers -- see
+    # NO_AUDIO_MONITORS in audio-follow-display.sh). Inputs: 2x HDMI 2.1, 1x DP 1.4.
+    #
+    # On the Framework 13 it hangs off the HDMI Expansion Card, an HDMI 2.0-class
+    # converter whose DP side trains at 4 lanes x HBR2 (17.3 Gb/s): 4K60 is the
+    # ceiling. Its EDID still lists 4K100/120 (the monitor is HDMI 2.1), which the
+    # card cannot carry -- this entry pins 60 so nothing ever reaches for them.
+    # It is also the fallback whenever the link type cannot be read (see link_of).
+    ["framework13:DELL G3223Q"]="3840x2160@60"
+
+    # The same Dell on its DP 1.4 input via a USB-C to DisplayPort cable (or the DP
+    # card): native DP alt mode, all 4 lanes, HBR3 = 25.9 Gb/s, no Thunderbolt
+    # tunnel or hub sharing it. 4K120 (~25 Gb/s at 8 bpc) fits without compression;
+    # 144 (~32 Gb/s) needs DSC, which is what made the LG blink on this machine --
+    # so 120 until 144 has been lived with: `--try DP-x 3840x2160@144`.
+    # Not yet verified: the cable has not arrived. Inert until the mode is offered.
+    ["framework13+dp:DELL G3223Q"]="3840x2160@120"
+
+    # On the desktop over native DP 1.4 (25.9 Gb/s) or HDMI 2.1: 144 at 4K needs
+    # ~32 Gb/s uncompressed, so over DP it rides on DSC (the panel and Nvidia both
+    # support it); HDMI 2.1 FRL carries it outright. Not yet verified on that
+    # machine -- `--try DP-x 3840x2160@144`, live with it a day, drop to 120 if it
+    # blinks. Inert (falls back to preferred 60) if the mode is not advertised.
+    ["raptor:DELL G3223Q"]="3840x2160@144"
 )
 
 # Per-monitor scale overrides, same key format. Falls back to the SCALE_* defaults.
-declare -A STABLE_SCALE=()
+declare -A STABLE_SCALE=(
+    # 27" 4K (163 ppi) next to the 32" Dell G3223Q at scale 1 (138 ppi). 1.2 would
+    # match the Dell's physical UI size exactly; 1.25 (3072x1728 logical) keeps it a
+    # touch larger, which suits the smaller panel. Whole-pixel 4K alternatives:
+    # 1.2, 1.333 (2880x1620), 1.5 (2560x1440 -- what scale = "auto" picks, too big).
+    ["LG HDR 4K"]="1.25"
+)
+
+# Left-to-right order when more than one known external is attached, by description
+# substring. Each sits at y=0, directly right of the previous one's logical width.
+# Unlisted known externals follow the listed ones, in Hyprland's order -- so the
+# layout no longer depends on which monitor happened to be plugged in first.
+EXTERNAL_ORDER=(
+    "DELL G3223Q"   # 32" 4K, scale 1 -- main screen, left
+    "LG HDR 4K"     # 27" 4K over USB-C -- right
+)
 
 # VRR (adaptive sync) per monitor, same key format again. Values are Hyprland's:
 #   0  off -- the default for any monitor with no entry here
@@ -262,22 +303,54 @@ declare -A STABLE_VRR=(
 # A "host:substring" key only matches on that host and wins over a bare "substring"
 # key, so a machine-specific entry can override a shared one. Returns 1 if nothing
 # matches, so callers can tell "no entry" from "entry that happens to be empty".
-table_lookup() { # table-name desc
+#
+# A host scope may also name the link type, "host+hdmi:substring" or
+# "host+dp:substring" (see link_of), for a monitor that reaches this machine over
+# more than one kind of connection. Most specific wins: host+link, then host, then
+# unscoped. A host+link entry never matches when the link type is unknown, so the
+# plain host entry is the safe fallback.
+table_lookup() { # table-name desc [link]
     local -n tbl=$1
-    local desc=$2 key host pat generic="" found=""
+    local desc=$2 link=${3:-} key scope host klink pat by_host="" generic="" found=""
     for key in "${!tbl[@]}"; do
-        host=""; pat=$key
-        case "$key" in *:*) host=${key%%:*}; pat=${key#*:} ;; esac
-        case "$desc" in *"$pat"*)
-            if [ -n "$host" ]; then
-                [ "$host" = "$THIS_HOST" ] && { echo "${tbl[$key]}"; return 0; }
+        scope=""; pat=$key
+        case "$key" in *:*) scope=${key%%:*}; pat=${key#*:} ;; esac
+        case "$desc" in *"$pat"*) ;; *) continue ;; esac
+        host=${scope%%+*}; klink=""
+        case "$scope" in *+*) klink=${scope#*+} ;; esac
+        if [ -z "$scope" ]; then
+            generic=${tbl[$key]}; found=1
+        elif [ "$host" = "$THIS_HOST" ]; then
+            if [ -n "$klink" ]; then
+                [ -n "$link" ] && [ "$klink" = "$link" ] && { echo "${tbl[$key]}"; return 0; }
             else
-                generic=${tbl[$key]}; found=1
-            fi ;;
-        esac
+                by_host=${tbl[$key]}; found=1
+            fi
+        fi
     done
+    [ -n "$by_host" ] && { echo "$by_host"; return 0; }
     [ -n "$found" ] && { echo "$generic"; return 0; }
     return 1
+}
+
+# How monitor $1 is attached: "hdmi" when the DP connector feeds an HDMI converter
+# (the Framework HDMI Expansion Card, a dongle), "dp" for native DisplayPort --
+# USB-C alt mode, a DP card or cable -- or empty when unknown. Read from the DRM
+# connector's subconnector property (HDMI=11, DP=10, Native=15) via modetest, which
+# ships with libdrm (a Hyprland dependency) and only reads, so it works under a
+# running compositor. The EDID cannot tell the two apart: the Dell G3223Q lists
+# 4K120 over the HDMI card too, which that card cannot carry.
+# Read once per run: link_of is always called inside $(...), where a lazy cache
+# would not survive. Empty on non-amdgpu machines, where every link is unknown.
+drm_connectors=$(modetest -M amdgpu -c 2>/dev/null | awk '
+    /^[0-9]+\t[0-9]+\t(connected|disconnected)/ { c = $4 }
+    /subconnector:/ { n = 4 }
+    n && n-- && /value:/ { print c, $2 }')
+link_of() { # name
+    case "$(echo "$drm_connectors" | awk -v c="$1" '$1 == c { print $2 }')" in
+        11)    echo hdmi ;;
+        10|15) echo dp ;;
+    esac
 }
 
 mons=$(hyprctl monitors all -j)
@@ -369,7 +442,7 @@ policy_mode() { # name
     local name=$1 desc key want canon pref nat best
     desc=$(desc_of "$name")
 
-    if want=$(table_lookup STABLE_MODE "$desc"); then
+    if want=$(table_lookup STABLE_MODE "$desc" "$(link_of "$name")"); then
         canon=$(resolve_mode "$name" "$want")
         if [ -n "$canon" ]; then echo "$canon"; return; fi
         # A different monitor matched the key, or the entry has a typo. Either
@@ -392,7 +465,7 @@ policy_mode() { # name
 policy_scale() { # name mode
     local desc override
     desc=$(desc_of "$1")
-    if override=$(table_lookup STABLE_SCALE "$desc"); then echo "$override"; return; fi
+    if override=$(table_lookup STABLE_SCALE "$desc" "$(link_of "$1")"); then echo "$override"; return; fi
     case "$(res_of "$2")" in
         3840x1600) echo "$SCALE_UW" ;;
         3840x2160) echo "$SCALE_4K" ;;
@@ -405,7 +478,7 @@ policy_scale() { # name mode
 policy_vrr() { # name
     local desc override
     desc=$(desc_of "$1")
-    if override=$(table_lookup STABLE_VRR "$desc"); then echo "$override"; return; fi
+    if override=$(table_lookup STABLE_VRR "$desc" "$(link_of "$1")"); then echo "$override"; return; fi
     echo 0
 }
 
@@ -469,21 +542,49 @@ edp=$(echo "$mons" | jq -r '[.[] | select(.name|startswith("eDP")) | .name] | fi
 # the largest-advertised test missed a perfectly ordinary 3840x1600 panel and left the
 # laptop screen on; while a monitor whose preferred mode is below its native res (a 4K
 # that asks for 1080p) needs the largest-advertised test to be recognised at all.
-chosen_name=""
+chosen=()
 externals=$(echo "$mons" | jq -r '.[] | select(.name|startswith("eDP")|not) | .name')
 while read -r name; do
     [ -z "$name" ] && continue
     for res in "$(res_of "$(preferred_mode "$name")")" "$(native_res "$name")"; do
-        case "$res" in 3840x1600|3840x2160) chosen_name=$name; break 2 ;; esac
+        case "$res" in 3840x1600|3840x2160) chosen+=("$name"); break ;; esac
     done
 done <<< "$externals"
 
-if [ -n "$chosen_name" ]; then
-    mode=$(policy_mode "$chosen_name")
-    scale=$(policy_scale "$chosen_name" "$mode")
-    vrr=$(policy_vrr "$chosen_name")
-    echo "monitors: driving $chosen_name at $mode (scale $scale, vrr $vrr)${edp:+; laptop panel off}"
-    set_monitor "$chosen_name" "$mode" "0x0" "$scale"
+# Position of monitor $1 in EXTERNAL_ORDER (99 if unlisted, so it sorts last).
+order_of() { # name
+    local desc i
+    desc=$(desc_of "$1")
+    for i in "${!EXTERNAL_ORDER[@]}"; do
+        case "$desc" in *"${EXTERNAL_ORDER[$i]}"*) echo "$i"; return ;; esac
+    done
+    echo 99
+}
+
+# Logical width of a "WxH@Hz" mode at a scale (what the next monitor sits beside).
+logical_width() { # mode scale
+    awk -v w="${1%%x*}" -v s="$2" 'BEGIN { printf "%d", w / s + 0.5 }'
+}
+
+if [ "${#chosen[@]}" -gt 0 ]; then
+    # Stable sort: EXTERNAL_ORDER first, Hyprland's order among equals.
+    sorted=$(for n in "${chosen[@]}"; do printf '%s %s\n' "$(order_of "$n")" "$n"; done |
+             sort -s -n -k1,1 | cut -d' ' -f2)
+    x=0; primary=""
+    while read -r name; do
+        mode=$(policy_mode "$name")
+        scale=$(policy_scale "$name" "$mode")
+        echo "monitors: driving $name at $mode (scale $scale) at ${x}x0"
+        set_monitor "$name" "$mode" "${x}x0" "$scale"
+        case "$mode" in
+            *x*@*) x=$(( x + $(logical_width "$mode" "$scale") )) ;;
+            *)     x=$(( x + $(logical_width "$(native_res "$name")" "$scale") )) ;;
+        esac
+        primary=${primary:-$name}
+    done <<< "$sorted"
+    # VRR is global (see apply_vrr): it follows the leftmost, i.e. main, screen.
+    vrr=$(policy_vrr "$primary")
+    echo "monitors: vrr $vrr (from $primary)${edp:+; laptop panel off}"
     apply_vrr "$vrr"
     if [ -n "$edp" ]; then disable_monitor "$edp"; fi
 else
