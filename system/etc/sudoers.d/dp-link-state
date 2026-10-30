@@ -1,0 +1,2 @@
+# Read-only DisplayPort link diagnostics for link-snapshot.sh (see the script).
+%wheel ALL=(root) NOPASSWD: /usr/local/bin/dp-link-state

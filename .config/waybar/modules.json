@@ -24,7 +24,14 @@
             "class<discord>": "󰙯",
             "class<kitty>": "󰆍",
             "class<codium>": "󰨞",
-            "class<todoist>": "󰗠"
+            "class<todoist>": "󰗠",
+            "class<org.kde.dolphin>": "󰉋",
+            "class<signal>": "󰭹",
+            "class<org.kde.okular>": "󰈦",
+            // Desktop file says TradingView; Electron may report it lowercase on Wayland.
+            "class<[Tt]rading[Vv]iew>": "󰄪",
+            // Interactive Brokers TWS (Java): login and main windows are jclient-*.
+            "class<jclient-.*>": "󰁰"
         },
         "format-icons": {
 			"urgent": "",
@@ -114,8 +121,11 @@
         "on-click": "kitty -e btop"
     }, 
 
+    // Active keyboard layout (us/se, toggled with Super+Space). Click also toggles.
     "hyprland/language": {
-        "format": "/ K {short}"
+        "format": "/ K {short}",
+        "tooltip-format": "{long}",
+        "on-click": "hyprctl switchxkblayout all next"
     },
 
     // Group Hardware

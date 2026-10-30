@@ -292,6 +292,12 @@ if [ -d "$script_dir/system" ]; then
         if ! sudo cmp -s "$src" "$dest" 2>/dev/null; then
             echo "Installing $dest..."
             mode=644; [ -x "$src" ] && mode=755
+            # A broken sudoers drop-in locks you out of sudo: validate first, 0440.
+            case "$dest" in
+                /etc/sudoers.d/*)
+                    visudo -cf "$src" >/dev/null || { echo "Skipping $dest: visudo rejects it."; continue; }
+                    mode=440 ;;
+            esac
             sudo install -D -m "$mode" "$src" "$dest"
             case "$dest" in
                 /etc/systemd/logind.conf.d/*) logind_changed=1 ;;

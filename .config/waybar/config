@@ -28,6 +28,7 @@
         "bluetooth",
         "cpu",
         "memory",
+        "hyprland/language",
         "keyboard-state",
         "battery",
         "clock",

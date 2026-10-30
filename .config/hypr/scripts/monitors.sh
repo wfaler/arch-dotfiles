@@ -615,3 +615,9 @@ if [ -x "$here/audio-follow-display.sh" ]; then
         "$here/audio-follow-display.sh" &
     fi
 fi
+
+# Record how the external links came up, to compare sessions where a monitor
+# blinks with ones where it does not (see link-snapshot.sh).
+if [ -x "$here/link-snapshot.sh" ] && [ -n "$(echo "$externals" | tr -d "[:space:]")" ]; then
+    "$here/link-snapshot.sh" &
+fi

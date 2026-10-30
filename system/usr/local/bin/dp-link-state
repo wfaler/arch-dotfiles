@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Print amdgpu's DisplayPort link state (link rate/lanes, DSC, PSR/Replay) for
+# every connected DP connector. Read-only, takes no arguments. Run via sudo by
+# ~/.config/hypr/scripts/link-snapshot.sh: debugfs is root-only, and
+# /etc/sudoers.d/dp-link-state lets wheel run exactly this file without a password.
+set -u
+
+for conn in /sys/class/drm/card*-DP-*; do
+    [ "$(cat "$conn/status" 2>/dev/null)" = connected ] || continue
+    name=${conn##*/card*-}
+    for dbg in /sys/kernel/debug/dri/*/"$name"; do
+        [ -d "$dbg" ] || continue
+        echo "[$name]"
+        for f in link_settings dsc_clock_en dsc_bits_per_pixel output_bpc psr_state replay_state; do
+            [ -r "$dbg/$f" ] || continue
+            printf '  %s: %s\n' "$f" "$(tr -s '\n ' ' ' < "$dbg/$f" | sed 's/ $//')"
+        done
+        break
+    done
+done

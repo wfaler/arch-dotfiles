@@ -8,6 +8,9 @@
 # disk use stays under 2 x MAX_BYTES and always holds the most recent lines.
 # Each line is appended as it arrives, so a hard power-off loses only what the
 # filesystem had not committed yet (seconds), not minutes.
+#
+# Per-event input and cursor debug lines are dropped: they are nearly all of the
+# volume and filled MAX_BYTES in about 15 minutes, pushing out everything useful.
 set -uo pipefail
 
 MAX_BYTES=$((5 * 1024 * 1024))
@@ -35,5 +38,8 @@ append "=== Hyprland session $HYPRLAND_INSTANCE_SIGNATURE started $(date -Is) ==
 # --pid: stop when this Hyprland exits, so a new session starts a fresh follower.
 # -n +1 -F: copy the log from its first line, and wait for it if not created yet.
 tail --pid="$PPID" -n +1 -F "$src" 2>/dev/null | while IFS= read -r line; do
+    case "$line" in
+        *"[libinput]"*|*"Cursor buffer imported"*) continue ;;
+    esac
     append "$line"
 done
