@@ -272,7 +272,20 @@ fi
 # ~/.config/systemd into a repo symlink (enable would then write .wants/ into the repo).
 mkdir -p "$HOME/.config/systemd/user"
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 stow .
+
+# Webcam presets: cameractrls/*.ini are shared, cameractrls/<hostname>/*.ini override
+# them on that host only. Linked per file (not stowed) so hosts can differ; links point
+# into the repo, so GUI saves to an existing preset still land in git.
+cam_dir="$HOME/.config/hu.irl.cameractrls"
+[ -L "$cam_dir" ] && rm "$cam_dir"  # old layout: whole dir was a stow symlink
+mkdir -p "$cam_dir"
+find "$cam_dir" -maxdepth 1 -xtype l -delete  # drop links to removed presets
+for preset in "$script_dir"/cameractrls/*.ini "$script_dir/cameractrls/$(uname -n)"/*.ini; do
+    [ -f "$preset" ] && ln -sfn "$preset" "$cam_dir/$(basename "$preset")"
+done
 
 # Restores the webcam presets in ~/.config/hu.irl.cameractrls on device connect.
 # Use enable, never reenable/disable: disable deletes the stowed unit symlink.
@@ -284,7 +297,6 @@ systemctl --user enable --now cameractrlsd.service
 # PAM config for sudo/polkit (falls back to password on desktops / lid closed).
 # Sorted so etc/pam.d/fprint-conditional is installed before etc/pam.d/sudo
 # includes it. Executable sources keep 755.
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -d "$script_dir/system" ]; then
     while IFS= read -r -d '' src; do
         rel="${src#$script_dir/system/}"

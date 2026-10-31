@@ -5,6 +5,7 @@
 # into $HOME. In particular `system/` is deployed to /etc by install.sh (via
 # sudo install), not by stow.
 ^/system$
+^/cameractrls$
 ^/nvim-box$
 ^/distrobox$
 ^/install\.sh$

@@ -12,19 +12,21 @@ Webcams don't store these settings: they reset on every replug and reboot. `came
 
 | File (in repo) | Purpose |
 |---|---|
-| `.config/hu.irl.cameractrls/<camera-id>.ini` | One preset file per camera. `[preset_1]` is applied on connect. |
+| `cameractrls/<camera-id>.ini` | Shared preset, one per camera, used on every machine. `[preset_1]` is applied on connect. |
+| `cameractrls/<hostname>/<camera-id>.ini` | Per-machine override (hostname from `uname -n`); replaces the shared preset on that host only. |
 | `.config/systemd/user/cameractrlsd.service` | User service running the restore daemon. Starts at login (`default.target`). |
-| `install.sh` | Installs `cameractrls`, pre-creates `~/.config/systemd/user`, stows, enables the service. |
+| `install.sh` | Installs `cameractrls`, pre-creates `~/.config/systemd/user`, stows, links the presets for this host, enables the service. |
 
 Current presets:
 
 | Camera | File | Settings |
 |---|---|---|
 | Logitech BRIO | `usb-046d_Logitech_BRIO_639E2A1F-video-index0.ini` | brightness 111, sharpness 231 |
+| Logitech BRIO (`raptor` only) | `raptor/usb-046d_Logitech_BRIO_639E2A1F-video-index0.ini` | brightness 75, sharpness 255 (max) |
 | Logitech C922 Pro Stream | `usb-046d_C922_Pro_Stream_Webcam_C6C9E0BF-video-index0.ini` | brightness 130, sharpness 200 |
 | Framework Laptop Webcam (2nd Gen) | `usb-Framework_Laptop_Webcam_Module__2nd_Gen__FRANJBCHA1551503GH-video-index0.ini` | brightness 85, sharpness 7 (max) |
 
-`~/.config/hu.irl.cameractrls` is a stow symlink into the repo, so presets saved from the GUI land in the repo and show up in `git diff`.
+`cameractrls/` is not stowed. `install.sh` makes `~/.config/hu.irl.cameractrls` a real directory and symlinks each preset into it: shared ones first, then `cameractrls/$(uname -n)/` overrides on top. Saving over an existing preset from the GUI writes through the symlink into the repo, so it shows up in `git diff`. A preset for a *new* camera saved from the GUI is a plain file in `~/.config/hu.irl.cameractrls`; move it into `cameractrls/` (or the host folder) and re-run the link step.
 
 ## Adding another camera
 
@@ -68,10 +70,18 @@ Use the `...-video-index0` entry for the camera, e.g. `usb-046d_Logitech_BRIO_63
 Either list only the controls you changed (everything else stays at camera defaults):
 
 ```fish
-printf '[preset_1]\nbrightness = 111\nsharpness = 231\n' > ~/dotfiles/.config/hu.irl.cameractrls/<camera-id>.ini
+printf '[preset_1]\nbrightness = 111\nsharpness = 231\n' > ~/dotfiles/cameractrls/<camera-id>.ini
+# or, for this machine only:
+printf '[preset_1]\nbrightness = 111\nsharpness = 231\n' > ~/dotfiles/cameractrls/(uname -n)/<camera-id>.ini
 ```
 
 or, in the GUI, pick the camera and use **Save 1** in the presets menu. Note that GUI save writes *every* current control into the preset and replaces whatever `[preset_1]` was there.
+
+Then link it in. This is the preset block from `install.sh`; re-running `install.sh` also does it:
+
+```fish
+ln -sfn ~/dotfiles/cameractrls/<camera-id>.ini ~/.config/hu.irl.cameractrls/   # or .../cameractrls/(uname -n)/<camera-id>.ini
+```
 
 ### 5. Apply and verify
 
@@ -84,7 +94,7 @@ Then unplug/replug the camera and check again. Logs: `journalctl --user -u camer
 
 ### 6. Commit
 
-Commit the new `.ini` and add it to the presets table above. No `stow` needed: the folder is already a symlink into the repo.
+Commit the new `.ini` and add it to the presets table above.
 
 ## Gotchas
 

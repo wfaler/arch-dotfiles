@@ -39,6 +39,17 @@ Pick "proprietary Nvidia" in the EndeavourOS installer so mkinitcpio MODULES, `l
 **pop-up windows for auth etc are just a tiny address bar on Brave and Chrome**
 navigate to [chrome://flags](chrome://flags) and set `--ozone-platform=wayland`, this should fix the issue.
 
+**SSD TRIM silently not working on LUKS-encrypted drives**
+The default CachyOS (Limine + `sd-encrypt`) install does not allow discards through the LUKS container, so `fstrim.timer` runs but never actually trims the SSD. Check with:
+```bash
+lsblk -D -o NAME,DISC-GRAN,DISC-MAX
+```
+If the `luks-…` device shows `DISC-MAX 0B`, add `rd.luks.options=<luks-uuid>=discard` (one per `rd.luks.uuid=`, using the `crypto_LUKS` partition's UUID from `lsblk -o NAME,FSTYPE,UUID`) to `KERNEL_CMDLINE` in `/etc/default/limine`, then:
+```bash
+sudo limine-update   # then reboot
+sudo fstrim -v /     # one-off catch-up; fstrim.timer handles it weekly afterwards
+```
+
 ## Using Fish-shell
 If you want to use the fishline, you can install it with:
 ```
