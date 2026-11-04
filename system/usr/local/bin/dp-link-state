@@ -7,7 +7,7 @@ set -u
 
 for conn in /sys/class/drm/card*-DP-*; do
     [ "$(cat "$conn/status" 2>/dev/null)" = connected ] || continue
-    name=${conn##*/card*-}
+    name=${conn##*/}; name=${name#card*-}   # card1-DP-5 -> DP-5
     for dbg in /sys/kernel/debug/dri/*/"$name"; do
         [ -d "$dbg" ] || continue
         echo "[$name]"

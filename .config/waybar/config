@@ -30,6 +30,7 @@
         "memory",
         "hyprland/language",
         "keyboard-state",
+        "custom/stay-awake",
         "battery",
         "clock",
         "tray",

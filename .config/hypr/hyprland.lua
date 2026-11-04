@@ -61,6 +61,11 @@ hl.on("hyprland.start", function()
     -- Dynamic monitor layout (Framework 13 / desktop / external displays) + hotplug watcher.
     hl.exec_cmd("~/.config/hypr/scripts/monitors.sh")
     hl.exec_cmd("~/.config/hypr/scripts/monitor-watch.sh")
+    -- Lid closed + external display + AC power: stay awake (logind's own docked test
+    -- fails once the screen is turned off; see the script).
+    hl.exec_cmd("~/.config/hypr/scripts/lid-hold.sh watch")
+    -- Relaunch hyprlock if it crashes while the session is locked (see the script).
+    hl.exec_cmd("~/.config/hypr/scripts/lock-watchdog.sh")
     -- Keep a size-capped copy of this session's log on disk (~/.local/state/hypr).
     hl.exec_cmd("~/.config/hypr/scripts/log-persist.sh")
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
@@ -149,6 +154,18 @@ hl.config({
         -- Follow windows that ask for focus, e.g. Firefox when a link is opened
         -- from another app: switch to its workspace instead of just marking it urgent.
         focus_on_activate       = true,
+        -- Let a new hyprlock take over a session whose lock screen crashed, instead of
+        -- leaving the "lockscreen crashed" screen with only TTY or reboot as a way out.
+        -- The session stays locked either way. scripts/lock-watchdog.sh relaunches it
+        -- automatically: hyprlock aborts when outputs are recreated (resume, hotplug).
+        allow_session_lock_restore = true,
+    },
+
+    quirks = {
+        -- Workaround from hyprwm/hyprlock#1064 for clients (hyprlock, terminals) dying
+        -- when displays wake or reconnect. Default is true; try reverting it if the
+        -- hyprlock crashes continue anyway.
+        skip_non_kms_dmabuf_formats = false,
     },
 
     render = {
@@ -276,6 +293,12 @@ hl.bind("XF86AudioMute",         hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_
 -- leaves the mic muted. Mic mute belongs to the headset hardware or the call app only.
 hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("brightnessctl s 10%+"),                         { locked = true, repeating = true })
 hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl s 10%-"),                         { locked = true, repeating = true })
+
+-- Lid: with the Waybar stay-awake toggle on, closing the lid turns the laptop panel off
+-- instead of suspending; opening it hands the layout back to monitors.sh. lid.sh does
+-- nothing while the toggle is off (logind suspends as usual).
+hl.bind("switch:on:Lid Switch",  hl.dsp.exec_cmd("~/.config/hypr/scripts/lid.sh close"), { locked = true })
+hl.bind("switch:off:Lid Switch", hl.dsp.exec_cmd("~/.config/hypr/scripts/lid.sh open"),  { locked = true })
 
 -- Screenshot region to clipboard
 hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd('grim -g "$(slurp)" - | wl-copy'))

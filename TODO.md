@@ -1,5 +1,57 @@
 # TODO
 
+## LG 38WN95C blinking: new Thunderbolt cable
+
+The LG 38WN95C (Thunderbolt 3, USB-C) blinks off/on as if replugged, in some sessions
+every ~15 min, with nothing in the kernel or Hyprland logs: the laptop keeps sending,
+the monitor drops the picture. Only this screen does it. Suspect the cable: the
+Thunderbolt link trains at half speed, `20 Gb/s = 2 lanes * 10 Gb/s` (TB3 is 40).
+
+Buying: Satechi Thunderbolt 4 Pro cable, 1 m, braided, 40 Gbps, 240 W, model
+ST-YTB100K (digitec 38610725). Thunderbolt logo on the connector = Intel certified.
+
+When it arrives:
+
+- [ ] Swap it in between the laptop and the LG.
+- [ ] `boltctl list` should now show `40 Gb/s = 2 lanes * 20 Gb/s`. Still 20? Try the
+      other rear USB-C port before blaming the cable.
+- [ ] `~/.config/hypr/scripts/link-snapshot.sh now` to record the new link.
+- [ ] On any blink: `~/.config/hypr/scripts/link-snapshot.sh blink`. Blinks at 40 Gb/s
+      point at the monitor rather than the cable (decisive test then: plain
+      DisplayPort cable + separate charger, which bypasses Thunderbolt entirely).
+- [ ] If it is stable for a few days: consider raising the LG above 75 Hz again
+      (`STABLE_MODE` in `.config/hypr/scripts/monitors.sh`; 75 was chosen because of
+      the 20 Gb/s link).
+- [ ] Port suspicion: blinks felt more frequent on the top rear port (typec port0,
+      Thunderbolt domain 0). Moved the LG to port3 (domain 1) on 2026-11-02 21:31. Still
+      20 Gb/s there, so the half-speed link is not the port. If port3 blinks less:
+      suspect the port0 bay or its expansion card; swap the USB-C cards between bays.
+- [ ] Run `./install.sh` once first: the fixed `system/usr/local/bin/dp-link-state`
+      fills in the DP link section of each snapshot (it was empty before).
+
+## hyprlock 0.9.7 crashes (SIGABRT) around suspend/resume
+
+Started with the upgrade 0.9.6 -> 0.9.7 on 2026-11-02 (no hyprlock crashes before).
+Crashed three times that day: twice ~1 s after resume (outputs recreated, the LG came
+back on a new DP connector) and once as suspend began (fprintd: "Cannot run while
+suspended"). Crashing thread: a std::thread calling abort() directly.
+
+- Upstream (checked 2026-11-03): this is hyprwm/hyprlock#1064, open. The Wayland
+  poll thread asserts (`hyprlock.cpp:414`, "Disconnected from pollfd") when outputs
+  are recreated; same stack as ours (std::thread -> abort, main thread on a condvar).
+  Reported on 0.9.6 too, including AMD + s2idle, so NOT a 0.9.7 regression and
+  downgrading won't help. Related: #1080 (open PR, output races), #1082.
+- Our trigger is output hotplug while locked, not only resume: 23:04, 00:05 and 08:15
+  crashes each hit at a DMUB HPD event / Thunderbolt disconnect of the LG, no suspend.
+  Fixing the LG blinking (cable) should also cut the crashes.
+- [ ] Workaround from #1064 is on (see below). Crashes still in `coredumpctl list
+      hyprlock` after a week? Revert it. Comment on #1064 with our AMD + hotplug data.
+- Mitigations in place: docked + powered laptops no longer sleep (`lid-hold.sh`), so
+  the resume path is rarely hit; `lock-watchdog.sh` relaunches hyprlock whenever it
+  dies while the session is locked (logged as `hyprlock-restore` in the journal);
+  `quirks.skip_non_kms_dmabuf_formats = false` set 2026-11-03 (#1064 workaround);
+  manual recovery from a TTY: `~/.config/hypr/scripts/restore-lock.sh`.
+
 ## Replace Shokz OpenMeet with Logitech Zone Wired 2 (wired USB-C headset)
 
 Buying: Logitech Zone Wired 2, Teams version, off-white (981-001621), from digitec.

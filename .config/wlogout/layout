@@ -1,6 +1,6 @@
 {
     "label" : "lock",
-    "action" : "hyprlock & sleep 0.5 && hyprctl dispatch 'hl.dsp.dpms(\"off\")'",
+    "action" : "loginctl lock-session && sleep 0.5 && hyprctl dispatch 'hl.dsp.dpms(\"off\")'",
     "text" : "Lock",
     "keybind" : "l"
 }

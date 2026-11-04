@@ -217,6 +217,15 @@
         "icon": false,
     },
 
+    // Stay awake: click to block lid-close suspend, idle lock and sleep (see script).
+    "custom/stay-awake": {
+        "exec": "~/.config/waybar/scripts/stay-awake.sh status",
+        "return-type": "json",
+        "interval": 30,
+        "signal": 9,
+        "on-click": "~/.config/waybar/scripts/stay-awake.sh toggle"
+    },
+
     // Idle Inhibator
     "idle_inhibitor": {
         "format": "{icon}",
@@ -225,6 +234,6 @@
             "activated": "",
             "deactivated": ""
         },
-        "on-click-right": "hyprlock"        
+        "on-click-right": "loginctl lock-session"
     }
 }

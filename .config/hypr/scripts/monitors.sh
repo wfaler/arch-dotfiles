@@ -588,6 +588,13 @@ if [ "${#chosen[@]}" -gt 0 ]; then
     apply_vrr "$vrr"
     if [ -n "$edp" ]; then disable_monitor "$edp"; fi
 else
+    # Lid shut with stay-awake on (lid.sh): keep the panel off rather than light it
+    # under the closed lid.
+    if [ -n "$edp" ] && [ -e "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/lid-panel-off" ]; then
+        echo "monitors: no known external; lid closed, laptop panel stays off"
+        disable_monitor "$edp"
+        edp=""
+    fi
     echo "monitors: no known external${edp:+; laptop panel on}"
     if [ -n "$edp" ]; then
         enable_monitor "$edp"
