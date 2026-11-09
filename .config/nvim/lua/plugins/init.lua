@@ -7,42 +7,16 @@ return {
     end,
   },
   {
+    -- `main` branch (the old `master` is frozen). It doesn't lazy-load, and its
+    -- setup takes no parser list: configs/treesitter.lua installs and starts them.
     "nvim-treesitter/nvim-treesitter",
-    opts = {
-      ensure_installed = {
-        -- defaults
-        "vim",
-        "lua",
-        "python",
-        "go",
-        "bash",
-        "yaml",
-        "toml",
-        "terraform",
-        "dockerfile",
-        "scala",
-        "templ",
-        -- web dev
-        "html",
-        "css",
-        "javascript",
-        "typescript",
-        "tsx",
-        "json",
-        "vue",
-        "svelte",
-        -- low level
-        "c",
-        "rust",
-        "java",
-        "kotlin",
-        "markdown",
-        "markdown_inline",
-      },
-    },
-  },
-  {
-    "williamboman/mason.nvim",
+    branch = "main",
+    lazy = false,
+    build = ":TSUpdate",
+    opts = {},
+    config = function()
+      require "configs.treesitter"
+    end,
   },
   {
     "neovim/nvim-lspconfig",
@@ -55,8 +29,27 @@ return {
     lazy = false,
   },
   {
+    -- Scala: nvim-metals runs Metals (not lspconfig). First use: :MetalsInstall
+    -- (needs coursier, `cs`, on PATH).
     "scalameta/nvim-metals",
-    ft = {"scala", "sbt"},
+    ft = { "scala", "sbt" },
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      local metals = require "metals"
+      local nvlsp = require "nvchad.configs.lspconfig"
+      local cfg = metals.bare_config()
+      cfg.settings = { showImplicitArguments = true, showInferredType = true }
+      cfg.on_attach = nvlsp.on_attach
+      cfg.capabilities = nvlsp.capabilities
+      -- lazy.nvim re-fires FileType after loading, which attaches the first buffer too.
+      vim.api.nvim_create_autocmd("FileType", {
+        group = vim.api.nvim_create_augroup("nvim-metals", { clear = true }),
+        pattern = { "scala", "sbt" },
+        callback = function()
+          metals.initialize_or_attach(cfg)
+        end,
+      })
+    end,
   },
   {
     "nvim-neotest/neotest",
@@ -64,7 +57,7 @@ return {
     dependencies = {
       "nvim-treesitter/nvim-treesitter",
       "nvim-lua/plenary.nvim",
-      "nvim-neotest/neotest-go",
+      { "fredrikaverpil/neotest-golang", version = "*" },
       "nvim-neotest/neotest-python",
       "stevanmilic/neotest-scala",
       "nvim-neotest/neotest-jest",
@@ -78,12 +71,13 @@ return {
   },
   {
     'mrcjkb/rustaceanvim',
-    version = '^5',
+    version = '^9',
     lazy = false,
   },
   {
     'saecki/crates.nvim',
     version = '*',
+    event = { "BufRead Cargo.toml" },
     config = function()
         require('crates').setup()
     end,

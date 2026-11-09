@@ -28,6 +28,8 @@
             "class<todoist>": "󰗠",
             "class<org.kde.dolphin>": "󰉋",
             "class<signal>": "󰭹",
+            // No Obsidian logo in Nerd Fonts; diamond stone is the closest to its crystal.
+            "class<md\\.obsidian\\.Obsidian>": "󰇈",
             "class<org.kde.okular>": "󰈦",
             // Desktop file says TradingView; Electron may report it lowercase on Wayland.
             "class<[Tt]rading[Vv]iew>": "󰄪",

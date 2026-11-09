@@ -11,11 +11,8 @@ vim.diagnostic.config({
 
 require("neotest").setup {
   adapters = {
-    require "neotest-go" {
-      experimental = {
-        test_table = true,
-      },
-      args = { "-count=1", "-coverprofile coverage.out", "-covermode=count" },
+    require "neotest-golang" {
+      go_test_args = { "-v", "-count=1", "-coverprofile=coverage.out", "-covermode=count" },
     },
     require "neotest-jest" {
       jestCommand = "npm test --",
@@ -99,7 +96,4 @@ require("neotest").setup {
   },
 }
 
-local opts = { noremap = true, silent = true }
-vim.api.nvim_set_keymap('n', '<leader>tn', ':lua require("neotest").run.run()<CR>', opts)
-vim.api.nvim_set_keymap('n', '<leader>tf', ':lua require("neotest").run.run(vim.fn.expand("%"))<CR>', opts)
-vim.api.nvim_set_keymap('n', '<leader>ts', ':lua require("neotest").summary.toggle()<CR>', opts)
+-- Keymaps (<leader>tn/tf/ts) are in mappings.lua.
