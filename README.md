@@ -50,6 +50,20 @@ sudo limine-update   # then reboot
 sudo fstrim -v /     # one-off catch-up; fstrim.timer handles it weekly afterwards
 ```
 
+## Tailscale
+After `install.sh`, allow your user to manage Tailscale without `sudo` (run once per machine):
+```bash
+sudo tailscale set --operator=$USER
+```
+Without this, `tailscale switch` fails with "profiles access denied" and the tray icon (`tailscale systray`, started from `hyprland.lua`) shows "No permission to manage Tailscale" instead of its full menu.
+
+Switching between Tailscale accounts:
+```bash
+tailscale login                # add another account (existing ones are kept)
+tailscale switch --list        # list accounts, active one marked
+tailscale switch <name-or-id>  # switch
+```
+
 ## Using Fish-shell
 If you want to use the fishline, you can install it with:
 ```

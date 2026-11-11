@@ -52,6 +52,9 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("hyprpaper")
     hl.exec_cmd("swaync")
     hl.exec_cmd("udiskie")
+    -- Tray icon (Waybar tray) for connect/disconnect and account switching; needs the
+    -- operator set once (see README) or its menu is mostly empty.
+    hl.exec_cmd("tailscale systray")
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
     hl.exec_cmd("systemctl --user start pipewire")
     hl.exec_cmd("systemctl --user start wireplumber")
